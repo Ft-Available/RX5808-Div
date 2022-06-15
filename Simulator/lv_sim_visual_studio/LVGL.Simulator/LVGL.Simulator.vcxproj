@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="Mile.Project\Mile.Project.Platform.Win32.props" />
+  <Import Project="Mile.Project\Mile.Project.Platform.x64.props" />
+  <Import Project="Mile.Project\Mile.Project.Platform.ARM64.props" />
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{3CA6E070-4AC1-475E-BB17-CF29AE4806DF}</ProjectGuid>
+    <RootNamespace>LVGL</RootNamespace>
+    <MileProjectType>ConsoleApplication</MileProjectType>
+    <MileProjectManifestFile>LVGL.Simulator.manifest</MileProjectManifestFile>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)'=='Debug'">
+    <SupportLTL>false</SupportLTL>
+  </PropertyGroup>
+  <Import Project="Mile.Project\Mile.Project.props" />
+  <Import Project="Mile.Project\Mile.Project.Runtime.VC-LTL.props" />
+  <Import Project="freetype.props" />
+  <PropertyGroup>
+    <IncludePath>$(MSBuildThisFileDirectory);$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Optimization Condition="'$(Configuration)'=='Release'">MinSpace</Optimization>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <Import Project="LVGL.Portable.vcxitems" />
+  <Import Project="LVGL.Drivers.vcxitems" />
+  <ItemGroup>
+    <ClInclude Include="lv_conf.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="lv_drv_conf.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="LVGL.Simulator.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Mile.Project.Properties.h" />
+    <ClInclude Include="page\beep.h" />
+    <ClInclude Include="page\lcd.h" />
+    <ClInclude Include="page\lvgl_stl.h" />
+    <ClInclude Include="page\page_about.h" />
+    <ClInclude Include="page\page_main.h" />
+    <ClInclude Include="page\page_menu.h" />
+    <ClInclude Include="page\page_scan.h" />
+    <ClInclude Include="page\page_scan_calib.h" />
+    <ClInclude Include="page\page_scan_chart.h" />
+    <ClInclude Include="page\page_scan_table.h" />
+    <ClInclude Include="page\page_setup.h" />
+    <ClInclude Include="page\page_start.h" />
+    <ClInclude Include="page\rx5808.h" />
+    <ClInclude Include="page\rx5808_config.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="LVGL.Simulator.cpp" />
+    <ClCompile Include="page\beep.c" />
+    <ClCompile Include="page\lcd.c" />
+    <ClCompile Include="page\lvgl_stl.c" />
+    <ClCompile Include="page\page_about.c" />
+    <ClCompile Include="page\page_main.c" />
+    <ClCompile Include="page\page_menu.c" />
+    <ClCompile Include="page\page_scan.c" />
+    <ClCompile Include="page\page_scan_calib.c" />
+    <ClCompile Include="page\page_scan_chart.c" />
+    <ClCompile Include="page\page_scan_table.c" />
+    <ClCompile Include="page\page_setup.c" />
+    <ClCompile Include="page\page_start.c" />
+    <ClCompile Include="page\Resources\lock_img.c" />
+    <ClCompile Include="page\Resources\lv_font_fre.c" />
+    <ClCompile Include="page\Resources\lv_font_start.c" />
+    <ClCompile Include="page\Resources\menu_about_icon.c" />
+    <ClCompile Include="page\Resources\menu_rx_icon.c" />
+    <ClCompile Include="page\Resources\menu_setup_icon.c" />
+    <ClCompile Include="page\rx5808.c" />
+    <ClCompile Include="page\rx5808_config.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="LVGL.Simulator.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="LVGL.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="freetype.props" />
+  </ItemGroup>
+  <Import Project="Mile.Project\Mile.Project.targets" />
+</Project>

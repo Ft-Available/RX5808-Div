@@ -1,0 +1,138 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="LVGL.Portable.vcxitems.filters" />
+  <Import Project="LVGL.Drivers.vcxitems.filters" />
+  <ItemGroup>
+    <ClInclude Include="lv_conf.h" />
+    <ClInclude Include="lv_drv_conf.h" />
+    <ClInclude Include="page\page_about.h">
+      <Filter>page</Filter>
+    </ClInclude>
+    <ClInclude Include="page\page_main.h">
+      <Filter>page</Filter>
+    </ClInclude>
+    <ClInclude Include="page\page_menu.h">
+      <Filter>page</Filter>
+    </ClInclude>
+    <ClInclude Include="page\page_setup.h">
+      <Filter>page</Filter>
+    </ClInclude>
+    <ClInclude Include="page\page_scan.h">
+      <Filter>page</Filter>
+    </ClInclude>
+    <ClInclude Include="page\page_start.h">
+      <Filter>page</Filter>
+    </ClInclude>
+    <ClInclude Include="page\lvgl_stl.h">
+      <Filter>page</Filter>
+    </ClInclude>
+    <ClInclude Include="page\rx5808.h">
+      <Filter>page\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="page\beep.h">
+      <Filter>page\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="page\lcd.h">
+      <Filter>page\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="page\rx5808_config.h">
+      <Filter>page\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="page\page_scan_calib.h">
+      <Filter>page</Filter>
+    </ClInclude>
+    <ClInclude Include="page\page_scan_chart.h">
+      <Filter>page</Filter>
+    </ClInclude>
+    <ClInclude Include="page\page_scan_table.h">
+      <Filter>page</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="LVGL.Simulator.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Mile.Project.Properties.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="LVGL.Simulator.cpp" />
+    <ClCompile Include="page\page_about.c">
+      <Filter>page</Filter>
+    </ClCompile>
+    <ClCompile Include="page\page_main.c">
+      <Filter>page</Filter>
+    </ClCompile>
+    <ClCompile Include="page\page_menu.c">
+      <Filter>page</Filter>
+    </ClCompile>
+    <ClCompile Include="page\page_setup.c">
+      <Filter>page</Filter>
+    </ClCompile>
+    <ClCompile Include="page\Resources\menu_setup_icon.c">
+      <Filter>page\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="page\Resources\menu_about_icon.c">
+      <Filter>page\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="page\Resources\menu_rx_icon.c">
+      <Filter>page\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="page\page_scan.c">
+      <Filter>page</Filter>
+    </ClCompile>
+    <ClCompile Include="page\Resources\lock_img.c">
+      <Filter>page\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="page\Resources\lv_font_fre.c">
+      <Filter>page\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="page\page_start.c">
+      <Filter>page</Filter>
+    </ClCompile>
+    <ClCompile Include="page\lvgl_stl.c">
+      <Filter>page</Filter>
+    </ClCompile>
+    <ClCompile Include="page\Resources\lv_font_start.c">
+      <Filter>page\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="page\rx5808.c">
+      <Filter>page\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="page\beep.c">
+      <Filter>page\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="page\lcd.c">
+      <Filter>page\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="page\rx5808_config.c">
+      <Filter>page\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="page\page_scan_calib.c">
+      <Filter>page</Filter>
+    </ClCompile>
+    <ClCompile Include="page\page_scan_chart.c">
+      <Filter>page</Filter>
+    </ClCompile>
+    <ClCompile Include="page\page_scan_table.c">
+      <Filter>page</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="LVGL.Simulator.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="LVGL.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="freetype.props" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="page">
+      <UniqueIdentifier>{6dec38d9-0f46-45a3-9137-ae4d82cff9c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="page\Resources">
+      <UniqueIdentifier>{9ebc4895-12d5-4a06-9863-d138e5fd6b81}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
