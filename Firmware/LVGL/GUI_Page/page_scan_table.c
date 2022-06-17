@@ -95,13 +95,13 @@ static void page_scan_table_timer_event(lv_timer_t* tmr)
         lv_obj_set_pos(obj, 17 * (repeat_count % 8) + 20, 0);
         lv_obj_set_style_border_width(obj, 2, LV_STATE_DEFAULT);
         lv_label_set_long_mode(obj, LV_LABEL_LONG_WRAP);
-        lv_label_set_text_fmt(fre_info_label, "%c%d:%d", 'A' + time_repeat_count / 8, time_repeat_count % 8, Rx5808_Freq[repeat_count / 8][repeat_count % 8]);
+        lv_label_set_text_fmt(fre_info_label, "%c%d:%d", 'A' + time_repeat_count / 8, time_repeat_count % 8+1, Rx5808_Freq[repeat_count / 8][repeat_count % 8]);
         if (repeat_count == 47)
         {
             lv_label_set_text_fmt(scan_info_label, "%s", "Finish!");
             lv_obj_set_style_text_opa(scan_info_label, LV_OPA_COVER, LV_STATE_DEFAULT);
             lv_obj_set_style_text_color(scan_info_label, lv_color_make(0, 255, 0), LV_STATE_DEFAULT);
-            lv_label_set_text_fmt(fre_info_label, "%c%d:%d", 'A' + max_channel / 8, max_channel % 8, Rx5808_Freq[max_channel / 8][max_channel % 8]);
+            lv_label_set_text_fmt(fre_info_label, "%c%d:%d", 'A' + max_channel / 8, max_channel % 8+1, Rx5808_Freq[max_channel / 8][max_channel % 8]);
             RX5808_Set_Freq(Rx5808_Freq[max_channel / 8][max_channel % 8]);
             Rx5808_Set_Channel(max_channel);
             rx5808_div_setup_upload();
