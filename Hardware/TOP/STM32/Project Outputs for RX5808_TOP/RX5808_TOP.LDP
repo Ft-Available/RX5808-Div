@@ -1,0 +1,3 @@
+Layer Pairs Export File for PCB: D:\RX5808-Div\RX5808-Div\Hardware\TOP\STM32\RX5808_TOP.PcbDoc
+LayersSetName=Top_Bot_Thru_Holes|DrillFile=rx5808_top-roundholes.txt|DrillLayers=gtl,gbl
+LayersSetName=Top_Bot_Slot_Holes|DrillFile=rx5808_top-slotholes.txt|DrillLayers=gtl,gbl

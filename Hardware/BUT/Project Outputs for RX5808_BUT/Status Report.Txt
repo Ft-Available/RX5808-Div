@@ -1,0 +1,12 @@
+Output: NC Drill Files
+Type  : NC Drill
+From  : Project [RX5808_BUT.PrjPcb]
+   Generated File[RX5808_BUT.TXT]
+   Generated File[RX5808_BUT.LDP]
+   Generated File[RX5808_BUT.DRR]
+
+
+Files Generated   : 3
+Documents Printed : 0
+
+Finished Output Generation At 11:12:11 On 2022/6/27

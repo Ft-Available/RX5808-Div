@@ -1,0 +1,21 @@
+----------------------------------------------------------------------------------------------------------------------------------
+NCDrill File Report For: RX5808_TOP.PcbDoc   2022/6/27  11:08:23
+----------------------------------------------------------------------------------------------------------------------------------
+
+Layer Pair : Top Layer to Bottom Layer
+ASCII RoundHoles File : RX5808_TOP-RoundHoles.TXT
+ASCII SlotHoles File : RX5808_TOP-SlotHoles.TXT
+
+Tool       Hole Size               Hole Tolerance               Hole Type       Hole Count   Plated         Tool Travel
+----------------------------------------------------------------------------------------------------------------------------------
+T1      16mil (0.399mm)                                           Round             117       PTH        0.00inch (0.00mm)
+T2      18mil (0.45mm)                                            Round             36        PTH        0.00inch (0.00mm)
+T3      20mil (0.508mm)                                           Round             2         PTH        0.00inch (0.00mm)
+T4      24mil (0.599mm)                                           Round             24        PTH        0.00inch (0.00mm)
+T5      32mil (0.8mm)                                             Slot              4         PTH        0.00inch (0.00mm)
+T6      39mil (1.001mm)                                           Round             1         NPTH       0.00inch (0.00mm)
+T7      43mil (1.1mm)                                             Round             1         NPTH       0.00inch (0.00mm)
+----------------------------------------------------------------------------------------------------------------------------------
+Totals                                                                              185
+
+Total Processing Time (hh:mm:ss) : 00:00:00

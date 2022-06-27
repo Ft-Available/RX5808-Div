@@ -1,0 +1,13 @@
+Output: NC Drill Files
+Type  : NC Drill
+From  : Project [RX5808_TOP.PrjPcb]
+   Generated File[RX5808_TOP-RoundHoles.TXT]
+   Generated File[RX5808_TOP-SlotHoles.TXT]
+   Generated File[RX5808_TOP.LDP]
+   Generated File[RX5808_TOP.DRR]
+
+
+Files Generated   : 4
+Documents Printed : 0
+
+Finished Output Generation At 11:08:23 On 2022/6/27
