@@ -5,7 +5,7 @@
 
 
 //STM32F4 最小FlASH扇区16K 写入需擦除，时间较长，不建议使用FLASH
-#define RX5808_CONFIGT_FLASH_EEPROM  1     //0 EEPROM  | 1 FLASH 
+#define RX5808_CONFIGT_FLASH_EEPROM  0     //0 EEPROM  | 1 FLASH 
 
 #define  STATUS_ON   1
 #define  STATUS_OFF  0
