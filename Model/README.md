@@ -1,7 +1,7 @@
 # RX5808-Div-Model
 
 
-Fatshark_Hdo文件夹下模型由网友(DP团队)贡献：
+Fatshark_Hdo文件夹下模型由网友(B站 DP团队)贡献：
 
 材料 ：光固化和尼龙烧结（耐温高于65度）， PLA PETG 等材料都可以
 
