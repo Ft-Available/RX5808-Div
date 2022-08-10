@@ -21,9 +21,13 @@ STM32可用USB，UART，SWD下载，不再赘述。
 ![image](https://user-images.githubusercontent.com/66466560/183941402-a557a9e5-d548-456c-b53c-5481e826d153.png)
 
 选择ESP32并点击OK。
+
 4.将解压得到的bin文件按下图顺序打开：
+
          bootloader.bin     0x1000
+         
          partition-table.bin  0x8000
+         
          RX5808.bin        0x10000 
          
  ![image](https://user-images.githubusercontent.com/66466560/183941506-98f46ba4-1fad-475d-91d7-f391da223f43.png)
@@ -38,5 +42,6 @@ STM32可用USB，UART，SWD下载，不再赘述。
 
 7.问题
 如遇花屏问题用ESP32_FirmWare_Slow固件。
+
 2022.8.10新增模组版固件为ESP32_Model_FirmWare。
  
