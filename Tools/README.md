@@ -4,7 +4,7 @@ RX5808下载固件指南
 
 一、	STM32版本
 
-STM32可用USB，UART，SWD下载，不再赘述。
+STM32固件为STM32_Firmware.zip，STM32可用USB，UART，SWD下载，不再赘述。
 
 二、	ESP32版本
 
