@@ -53,7 +53,7 @@ volatile uint16_t Rx5808_RSSI_Ad_Max1=4095;
 uint16_t Rx5808_Language=1;
 uint16_t Rx5808_Signal_Source=0;
 
-
+const char Rx5808_ChxMap[6] = {'A', 'B', 'E', 'F', 'R', 'L'};
 const uint16_t Rx5808_Freq[6][8]=
 {
 	{5865,5845,5825,5805,5785,5765,5745,5725},	  //A	CH1-8

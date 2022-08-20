@@ -1,5 +1,5 @@
 #include "24cxx.h"
-#include "I2C.h"
+#include "MyI2C.h"
 
 
 void eeprom_24cxx_init()

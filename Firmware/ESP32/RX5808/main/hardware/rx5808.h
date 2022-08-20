@@ -11,6 +11,7 @@ typedef enum
 	 rx5808_receiver_count,
 }rx5808_receive;
 
+extern const char Rx5808_ChxMap[6];
 extern const uint16_t Rx5808_Freq[6][8];
 extern volatile int8_t channel_count;
 extern volatile int8_t Chx_count;

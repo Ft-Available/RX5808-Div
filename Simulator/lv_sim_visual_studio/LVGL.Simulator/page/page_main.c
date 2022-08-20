@@ -50,7 +50,7 @@ static void event_callback(lv_event_t* event)
                 Rx5808_Set_Channel(channel_count + Chx_count * 8);
                 rx5808_div_setup_upload();
                 fre_label_update(Chx_count, channel_count);
-                lv_label_set_text_fmt(lv_channel_label, "%c%d", 'A' + Chx_count, channel_count + 1);
+                lv_label_set_text_fmt(lv_channel_label, "%c%d", Rx5808_ChxMap[Chx_count], channel_count + 1);
             }
             else if (key_status == LV_KEY_RIGHT) {
                 channel_count++;
@@ -60,7 +60,7 @@ static void event_callback(lv_event_t* event)
                 Rx5808_Set_Channel(channel_count + Chx_count * 8);
                 rx5808_div_setup_upload();
                 fre_label_update(Chx_count, channel_count);
-                lv_label_set_text_fmt(lv_channel_label, "%c%d", 'A' + Chx_count, channel_count + 1);
+                lv_label_set_text_fmt(lv_channel_label, "%c%d", Rx5808_ChxMap[Chx_count], channel_count + 1);
 
             }
             else if (key_status == LV_KEY_UP) {
@@ -71,7 +71,7 @@ static void event_callback(lv_event_t* event)
                 Rx5808_Set_Channel(channel_count + Chx_count * 8);
                 rx5808_div_setup_upload();
                 fre_label_update(Chx_count, channel_count);
-                lv_label_set_text_fmt(lv_channel_label, "%c%d", 'A' + Chx_count, channel_count + 1);
+                lv_label_set_text_fmt(lv_channel_label, "%c%d", Rx5808_ChxMap[Chx_count], channel_count + 1);
             }
             else if (key_status == LV_KEY_DOWN) {
                 Chx_count++;
@@ -81,7 +81,7 @@ static void event_callback(lv_event_t* event)
                 Rx5808_Set_Channel(channel_count + Chx_count * 8);
                 rx5808_div_setup_upload();
                 fre_label_update(Chx_count, channel_count);
-                lv_label_set_text_fmt(lv_channel_label, "%c%d", 'A' + Chx_count, channel_count + 1);
+                lv_label_set_text_fmt(lv_channel_label, "%c%d", Rx5808_ChxMap[Chx_count], channel_count + 1);
             }
         }
     }
@@ -190,7 +190,7 @@ void page_main_create()
     lv_obj_set_style_text_font(lv_channel_label, &lv_font_montserrat_16, LV_STATE_DEFAULT);
     lv_obj_set_style_text_color(lv_channel_label, lv_color_make(0, 157, 255), LV_STATE_DEFAULT);
     lv_label_set_recolor(lv_channel_label, true);
-    lv_label_set_text_fmt(lv_channel_label, "%c%d", 'A' + Chx_count, channel_count + 1);
+    lv_label_set_text_fmt(lv_channel_label, "%c%d", Rx5808_ChxMap[Chx_count], channel_count + 1);
 
     lv_rsss0_label = lv_label_create(main_contain);
     lv_label_set_long_mode(lv_rsss0_label, LV_LABEL_LONG_WRAP);

@@ -1,6 +1,7 @@
 #include "lcd.h"
 #include "beep.h"
 #include "SPI.h"
+#include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include <string.h>
 

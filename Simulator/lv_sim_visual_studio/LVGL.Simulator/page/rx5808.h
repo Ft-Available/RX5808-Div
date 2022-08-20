@@ -10,6 +10,7 @@
 //#define RX5808_VIDEO_SWITCH0     PBout(10)
 //#define RX5808_VIDEO_SWITCH1     PBout(2)
 
+extern const char Rx5808_ChxMap[6];
 extern const uint16_t Rx5808_Freq[6][8];
 extern int8_t channel_count;
 extern int8_t Chx_count;

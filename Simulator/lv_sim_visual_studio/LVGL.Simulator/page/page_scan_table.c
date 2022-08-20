@@ -34,7 +34,7 @@ static void group_obj_scroll(lv_group_t* g);
 static void page_scan_table_exit(void);
 
 
-static const char fre_channel_nale[6][2] = { "A","B","C","D","E","F" };
+static const char fre_channel_nale[6][2] = { "A","B","E","F","R","L" };
 static const int fre_channel_num[] = { 1,2,3,4,5,6,7,8 };
 static const lv_color_t channel_label_color[] = { {.full = 0XFC07},{.full = 0XFC00}, {.full = 0X841F},{.full = 0XF81F}, {.full = 0xBE7f},{.full = 0x7FFF} };
 
