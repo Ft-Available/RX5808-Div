@@ -12,6 +12,7 @@
 #include "lv_port_disp.h"
 #include "../../lvgl.h"
 #include "lcd.h"
+#include "lvgl_driver_video.h"
 /*********************
  *      DEFINES
  *********************/
@@ -173,6 +174,21 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
     //lv_disp_flush_ready(disp_drv);
 }
 
+void lv_port_video_disp_init(void) {
+    lv_video_disp_init_buf(NTSC_256x192, NULL, 0, true);
+}
+lv_disp_t* lv_port_v_disp = NULL;
+void lv_port_video_register(void) {
+    if (NULL == lv_port_v_disp) {
+        lv_port_v_disp = lv_disp_drv_register(lv_video_disp_get_drv());
+    }
+}
+void lv_port_video_remove(void) {
+    if (NULL != lv_port_v_disp) {
+        lv_disp_remove(lv_port_v_disp);
+        lv_port_v_disp = NULL;
+    }
+}
 /*OPTIONAL: GPU INTERFACE*/
 
 /*If your MCU has hardware accelerator (GPU) then you can use it to fill a memory with a color*/

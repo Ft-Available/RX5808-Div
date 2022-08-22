@@ -1,0 +1,93 @@
+menu "Composite Video Configuration"
+
+	config VIDEO_PAL_OFFSET_Y
+		int "Const top offset for PAL"
+		default 11
+		help
+			The value is added to computed vertical position.
+			In scanlines. It can be negative.
+
+	config VIDEO_NTSC_OFFSET_Y
+		int "Const top offset for NTSC"
+		default 7
+		help
+			The value is added to computed vertical position.
+			In scanlines. It can be negative.
+
+	config VIDEO_ENABLE_LVGL_SUPPORT
+		bool "Enable support for LVGL graphics library"
+		default y
+		help
+			LVGL is an open-source graphics library providing GUI 
+			graphical elements and visual effects.
+			Website https://lvgl.io/
+
+	if VIDEO_ENABLE_LVGL_SUPPORT
+		config LVGL_STATS
+			bool "Enable LVGL buffer write stats"
+			default false
+			help
+				Displays stats every second.
+			
+		config LVGL_VSYNC
+			bool "Synchronize content updates with VSYNC"
+			default true
+			help
+				Smooth animations but update rate may decrease. 
+				Does not work for direct frame buffer access.
+
+		config VIDEO_LVGL_INCLUDE_PATH
+			string  "Path to lvgl.h header"
+			default "../../lvgl/lvgl.h"
+			help
+				Relative or absolute path to lvgl.h file from LVGL component
+	endif
+
+	config VIDEO_ENABLE_DIAG_PIN
+		bool "Enable diagnostic pin"
+		default n
+		help
+			When enabled specified pin is set high at the begining of the scan line or the field.
+			Use as extranal trigger source for osciloscope or logic analyzer.
+			It can be also used to measure timings.
+
+	if VIDEO_ENABLE_DIAG_PIN
+
+	config VIDEO_DIAG_PIN_NUMBER
+		int "Diagnostic GPIO pin number"
+		default 4
+		help
+			GPIO pin number. You can use any output pin.
+
+	choice VIDEO_TRIGGER_MODE
+		prompt "Trigger mode"
+		default VIDEO_TRIGGER_MODE_FIELD
+		help
+			When diagnostic pin is high and low. 
+	
+	config VIDEO_TRIGGER_MODE_LINE
+		bool "Line"
+	config VIDEO_TRIGGER_MODE_FIELD
+		bool "Field"
+	config VIDEO_TRIGGER_MODE_ISR
+		bool "ISR"
+	config VIDEO_TRIGGER_MODE_CUSTOM
+		bool "Custom"
+	endchoice
+
+
+	endif
+
+	config VIDEO_DIAG_ENABLE_INTERRUPT_STATS
+		bool "Enable interrupt time stats"
+		default n
+		help
+			Periodically write interrupt timing stats on the log.
+
+	config VIDEO_DIAG_DISPLAY_TEST_FUNC
+		bool "Enable display_test_image() function"
+		default n
+		help
+			Compiles function to display test patterns including Philips PM5544
+	
+endmenu

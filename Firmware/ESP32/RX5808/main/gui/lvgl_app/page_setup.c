@@ -31,8 +31,8 @@ static lv_obj_t* language_setup_label;
 static lv_obj_t* signal_source_setup_label;
 
 const char language_label_text[][10] = { "English","中文" };
-const char signal_source_label_text[][10] = { "Auto","Recv1","Recv2" };
-const char signal_source_label_chinese_text[][12] = { "自动","接收机1","接收机2" };
+const char signal_source_label_text[][10] = { "Auto","Recv1","Recv2","None" };
+const char signal_source_label_chinese_text[][12] = { "自动","接收机1","接收机2","None"};
 
 static uint32_t language_selid = 65532;
 static uint32_t signal_source_selid = 65532;
@@ -111,8 +111,8 @@ static void setup_event_callback(lv_event_t* event)
             else if (obj == signal_source_label)
             {
                 --signal_source_selid;
-                lv_label_set_text_fmt(signal_source_setup_label, (const char*)(&signal_source_label_text[signal_source_selid % 3]));
-                RX5808_Set_Signal_Source(signal_source_selid % 3);
+                lv_label_set_text_fmt(signal_source_setup_label, (const char*)(&signal_source_label_text[signal_source_selid % 4]));
+                RX5808_Set_Signal_Source(signal_source_selid % 4);
                 page_setup_set_language(language_selid % 2);
         
             }
@@ -148,8 +148,8 @@ static void setup_event_callback(lv_event_t* event)
             else if (obj == signal_source_label)
             {
                 ++signal_source_selid;
-                lv_label_set_text_fmt(signal_source_setup_label, (const char*)(&signal_source_label_text[signal_source_selid % 3]));
-                RX5808_Set_Signal_Source(signal_source_selid % 3);
+                lv_label_set_text_fmt(signal_source_setup_label, (const char*)(&signal_source_label_text[signal_source_selid % 4]));
+                RX5808_Set_Signal_Source(signal_source_selid % 4);
                 page_setup_set_language(language_selid % 2);
             
             }
@@ -224,7 +224,7 @@ static void page_setup_set_language(uint16_t language)
         lv_label_set_text_fmt(signal_source_label, "Signal");
         lv_label_set_text_fmt(exit_label, "Save&Exit");
         lv_label_set_text_fmt(language_setup_label, (const char*)(&language_label_text[language_selid % 2]));
-        lv_label_set_text_fmt(signal_source_setup_label, (const char*)(&signal_source_label_text[signal_source_selid % 3]));
+        lv_label_set_text_fmt(signal_source_setup_label, (const char*)(&signal_source_label_text[signal_source_selid % 4]));
     }
     else
     {
@@ -241,7 +241,7 @@ static void page_setup_set_language(uint16_t language)
         lv_label_set_text_fmt(signal_source_label, "输出信号源 ");
         lv_label_set_text_fmt(exit_label, "保存并退出 ");
         lv_label_set_text_fmt(language_setup_label, (const char*)(&language_label_text[language_selid % 2]));
-        lv_label_set_text_fmt(signal_source_setup_label, (const char*)(&signal_source_label_chinese_text[signal_source_selid % 3]));
+        lv_label_set_text_fmt(signal_source_setup_label, (const char*)(&signal_source_label_chinese_text[signal_source_selid % 4]));
     }
 }
 
@@ -345,7 +345,7 @@ void page_setup_create()
     signal_source_setup_label = lv_label_create(menu_setup_contain);
     lv_obj_add_style(signal_source_setup_label, &style_setup_item, LV_STATE_DEFAULT);
     lv_obj_set_style_bg_color(signal_source_setup_label, LABEL_FOCUSE_COLOR, LV_STATE_FOCUSED);
-    //lv_label_set_text_fmt(signal_source_setup_label, (const char*)(&signal_source_label_text[signal_source_selid % 3]));
+    //lv_label_set_text_fmt(signal_source_setup_label, (const char*)(&signal_source_label_text[signal_source_selid % 4]));
     lv_obj_set_pos(signal_source_setup_label, 110, 78);
     lv_obj_set_size(signal_source_setup_label, 50, 18);
     lv_label_set_long_mode(signal_source_setup_label, LV_LABEL_LONG_WRAP);

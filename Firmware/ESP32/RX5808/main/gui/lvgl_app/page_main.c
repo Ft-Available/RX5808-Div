@@ -3,6 +3,7 @@
 #include "rx5808.h"
 #include "rx5808_config.h"
 #include "lvgl_stl.h"
+#include "lv_port_disp.h"
 #include <stdlib.h>
 #include "beep.h"
 
@@ -42,6 +43,8 @@ static void page_main_exit(void);
 static void page_main_group_create(void);
 static void fre_label_update(uint8_t a, uint8_t b);
 
+#define LV_VIDEO_FB_CNT 60
+uint16_t lv_port_video_fb_cnt = 0;
 static void event_callback(lv_event_t* event)
 {
     lv_event_code_t code = lv_event_get_code(event);
@@ -117,6 +120,15 @@ static void event_callback(lv_event_t* event)
         {
             lv_obj_set_style_bg_color(lock_btn, lv_color_make(255, 0, 0), LV_STATE_DEFAULT);
             lock_flag = false;
+        }
+        if (lv_port_video_fb_cnt == 0) {
+            lv_port_video_fb_cnt=LV_VIDEO_FB_CNT;
+            lv_port_video_register();
+        } else {
+            --lv_port_video_fb_cnt;
+            if (lv_port_video_fb_cnt == 0) {
+                lv_port_video_remove();
+            }
         }
     }
 }

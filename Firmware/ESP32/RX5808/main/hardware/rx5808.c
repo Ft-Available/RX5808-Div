@@ -289,7 +289,9 @@ float Rx5808_Get_Precentage1()
 
 float Get_Battery_Voltage()
 {
-    return (float)adc_converted_value[2]/4095*6.8;
+    //return (float)adc_converted_value[2]/4095*6.8;
+	// 1k电阻用
+	return (float)adc_converted_value[2]/4095*53.3375;
 }
 
 
@@ -325,6 +327,10 @@ void DMA2_Stream0_IRQHandler(void)
 		gpio_set_level(RX5808_SWITCH0, 1);
 		gpio_set_level(RX5808_SWITCH1, 0);
 	}
+	else if(Rx5808_Signal_Source==3) {
+		gpio_set_level(RX5808_SWITCH0, 0);
+		gpio_set_level(RX5808_SWITCH1, 0);
+	}
 	else
 	{
 		float rssi0=Rx5808_Get_Precentage0();
@@ -344,18 +350,17 @@ void DMA2_Stream0_IRQHandler(void)
 			else{
 			rx5808_cur_receiver_best=rx5808_receiver1;
 			}
-			if(rx5808_cur_receiver_best==rx5808_pre_receiver_best)
-				{
+			if(rx5808_cur_receiver_best==rx5808_pre_receiver_best){
 				if(rx5808_cur_receiver_best==rx5808_receiver0){
-				gpio_set_level(RX5808_SWITCH0, 1);
-				gpio_set_level(RX5808_SWITCH1, 0);
+					gpio_set_level(RX5808_SWITCH0, 1);
+					gpio_set_level(RX5808_SWITCH1, 0);
 				}
-				else if(rx5808_cur_receiver_best==rx5808_receiver1){
-				gpio_set_level(RX5808_SWITCH1, 1);
-				gpio_set_level(RX5808_SWITCH0, 0);
+				else if(rx5808_cur_receiver_best==rx5808_receiver1) {
+					gpio_set_level(RX5808_SWITCH1, 1);
+					gpio_set_level(RX5808_SWITCH0, 0);
 				}
-		}		
-		rx5808_pre_receiver_best=rx5808_cur_receiver_best;		
+			}	
+			rx5808_pre_receiver_best=rx5808_cur_receiver_best;		
 		}
 
 		}

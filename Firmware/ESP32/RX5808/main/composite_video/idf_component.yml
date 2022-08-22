@@ -1,0 +1,3 @@
+version: "1.0.0"
+description: ESP32 Composite Video library. Display images on TV or monitor with composite input.
+url: https://github.com/aquaticus/esp32_composite_video_lib
