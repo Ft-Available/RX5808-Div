@@ -17,7 +17,7 @@ void rx5808_div_setup_load()
 	#if RX5808_CONFIGT_FLASH_EEPROM==1
 	STMF4_FLASH_Read_Word(rx5808_div_setup,rx5808_div_config_setup_count);
 	#else
-	//eeprom_24cxx_read_half_word_len(0,rx5808_div_setup,rx5808_div_config_setup_count);
+	eeprom_24cxx_read_half_word_len(0,rx5808_div_setup,rx5808_div_config_setup_count);
 	#endif
 	if(rx5808_div_setup[rx5808_div_config_setup_id]!=SETUP_ID_DEFAULT)
 	{		
@@ -35,7 +35,7 @@ void rx5808_div_setup_load()
 		#if RX5808_CONFIGT_FLASH_EEPROM==1
 		STMF4_FLASH_Write_Word(rx5808_div_setup,rx5808_div_config_setup_count);
 	  #else
-	  //eeprom_24cxx_write_half_word_len(0,rx5808_div_setup,rx5808_div_config_setup_count);
+	  eeprom_24cxx_write_half_word_len(0,rx5808_div_setup,rx5808_div_config_setup_count);
 	  #endif
 	}
 	
@@ -73,7 +73,7 @@ void rx5808_div_setup_upload()
 	#if RX5808_CONFIGT_FLASH_EEPROM==1
 		STMF4_FLASH_Write_Word(rx5808_div_setup,rx5808_div_config_setup_count);
 	#else
-	  //eeprom_24cxx_write_half_word_len(0,rx5808_div_setup,rx5808_div_config_setup_count);
+	  eeprom_24cxx_write_half_word_len(0,rx5808_div_setup,rx5808_div_config_setup_count);
 	#endif
 	
 }
