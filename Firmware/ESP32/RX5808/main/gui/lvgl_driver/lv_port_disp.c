@@ -20,7 +20,7 @@
 lv_color_t lv_disp_buf1[DISP_BUF_SIZE];
 lv_color_t lv_disp_buf2[DISP_BUF_SIZE];
 //static lv_color_t lv_disp_buf3[240*140];
-lv_disp_drv_t *disp_drv_t;  
+lv_disp_drv_t *disp_drv_t;
 /**********************
  *      TYPEDEFS
  **********************/
@@ -45,6 +45,8 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
 /**********************
  *   GLOBAL FUNCTIONS
  **********************/
+static void composite_rounder_cb(lv_disp_drv_t * disp_drv, lv_area_t * area);
+static void composite_buffer_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p);
 
 void lv_port_disp_init(void)
 {
@@ -124,6 +126,20 @@ void lv_port_disp_init(void)
 
     /*Finally register the driver*/
     lv_disp_drv_register(&disp_drv);
+
+
+    // 注册A/V信号输出
+    static lv_disp_drv_t disp_drv_video;
+    FRAME_BUFFER_FORMAT fb_format;
+    fb_format = FB_FORMAT_RGB_16BPP;
+    video_graphics(PAL_160x80, fb_format);
+	lv_disp_drv_init(&disp_drv_video);
+    disp_drv_video.flush_cb = composite_buffer_flush_cb;
+    disp_drv_video.rounder_cb = composite_rounder_cb;
+	disp_drv_video.draw_buf = &draw_buf_dsc_2;
+	disp_drv_video.hor_res = MY_DISP_HOR_RES;
+	disp_drv_video.ver_res = MY_DISP_VER_RES;
+    lv_disp_drv_register(&disp_drv_video);
 }
 
 /**********************
@@ -173,22 +189,32 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
      *Inform the graphics library that you are ready with the flushing*/
     //lv_disp_flush_ready(disp_drv);
 }
+static void composite_rounder_cb(lv_disp_drv_t * disp_drv, lv_area_t * area)
+{
+    //16bit color 2 pixels/32 bits
+    area->x1 &= ~1;
+    area->x2 |= 1;
+}
+static void composite_buffer_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p)
+{
+    register uint32_t pixel_data;
+    for(int y=area->y1; y<=area->y2; y++)
+    {
+        uint32_t* dest = (uint32_t*)(video_get_frame_buffer_address()+y*video_get_width()*2+area->x1*2);
+        for(int x = area->x1; x <= area->x2; x+=2)
+        {
+            pixel_data = *((uint16_t*)color_p);
+            color_p++;
+            pixel_data |= ((uint32_t)(*((uint16_t*)color_p))) << 16;
+            color_p++;
 
-lv_color_t lv_disp_buf_video[DISP_BUF_SIZE];
-void lv_port_video_disp_init(void) {
-    lv_video_disp_init_buf(NTSC_160x80, lv_disp_buf_video, DISP_BUF_SIZE, false);
-}
-lv_disp_t* lv_port_v_disp = NULL;
-void lv_port_video_register(void) {
-    if (NULL == lv_port_v_disp) {
-        lv_port_v_disp = lv_disp_drv_register(lv_video_disp_get_drv());
+            *dest = pixel_data;
+
+            dest++;
+        }
     }
-}
-void lv_port_video_remove(void) {
-    if (NULL != lv_port_v_disp) {
-        lv_disp_remove(lv_port_v_disp);
-        lv_port_v_disp = NULL;
-    }
+	lv_disp_flush_ready(disp_drv);
+    
 }
 /*OPTIONAL: GPU INTERFACE*/
 
