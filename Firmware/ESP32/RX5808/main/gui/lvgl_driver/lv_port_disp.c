@@ -162,7 +162,7 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
 	height=area->y2-area->y1+1;			//????
     Address_Set(area->x1,area->y1,area->x2,area->y2);    
     memset(&t, 0, sizeof(t));       //Zero out the transaction
-    t.length=width*height*16;                     //Command is 8 bits
+    t.length=width*height*16;       //Command is 8 bits
     t.user=(void*)1;                //D/C needs to be set to 0
 	t.tx_buffer=color_p;
     gpio_set_level(PIN_NUM_DC, 1);
@@ -174,8 +174,9 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
     //lv_disp_flush_ready(disp_drv);
 }
 
+lv_color_t lv_disp_buf_video[DISP_BUF_SIZE];
 void lv_port_video_disp_init(void) {
-    lv_video_disp_init_buf(NTSC_256x192, NULL, 0, true);
+    lv_video_disp_init_buf(NTSC_160x80, lv_disp_buf_video, DISP_BUF_SIZE, false);
 }
 lv_disp_t* lv_port_v_disp = NULL;
 void lv_port_video_register(void) {

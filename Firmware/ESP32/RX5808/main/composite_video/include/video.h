@@ -77,6 +77,8 @@ typedef enum _GRAPHICS_MODE
     NTSC_360x240, ///< NTSC Overscan DV/BT.601 (6.75 MHz)
     NTSC_720x240, ///< NTSC Overscan DV/BT.601 (13.5 MHz), non-interlaced
 
+    NTSC_160x80, ///< NTSC
+
 } GRAPHICS_MODE;
 
 typedef enum _VSYNC_PULSE_LENGTH

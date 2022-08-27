@@ -1067,7 +1067,9 @@ void video_graphics(GRAPHICS_MODE mode, FRAME_BUFFER_FORMAT fb_format)
         case NTSC_720x240:
             video_init(720, 240, fb_format, VIDEO_MODE_NTSC, true);
             break;
-
+        case NTSC_160x80:
+            video_init(160, 80, fb_format, VIDEO_MODE_NTSC, true);
+            break;
         default:
             //ESP_LOGE(TAG, "Not supported video_graphics mode");
             assert(false);
