@@ -20,7 +20,8 @@
 lv_color_t lv_disp_buf1[DISP_BUF_SIZE];
 lv_color_t lv_disp_buf2[DISP_BUF_SIZE];
 //static lv_color_t lv_disp_buf3[240*140];
-lv_disp_drv_t *disp_drv_t;
+lv_disp_drv_t *disp_drv_spi;
+lv_disp_t *default_disp = NULL;
 /**********************
  *      TYPEDEFS
  **********************/
@@ -46,8 +47,6 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
  *   GLOBAL FUNCTIONS
  **********************/
 static void composite_rounder_cb(lv_disp_drv_t * disp_drv, lv_area_t * area);
-static void composite_buffer_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p);
-
 void lv_port_disp_init(void)
 {
     /*-------------------------
@@ -86,11 +85,18 @@ void lv_port_disp_init(void)
     // lv_disp_draw_buf_init(&draw_buf_dsc_1, buf_1, NULL, MY_DISP_HOR_RES * 10);   /*Initialize the display buffer*/
 
     /* Example for 2) */
+    // 注册A/V信号输出
+    FRAME_BUFFER_FORMAT fb_format;
+    fb_format = FB_FORMAT_RGB_16BPP;
+    video_graphics(PAL_160x80, fb_format);
     static lv_disp_draw_buf_t draw_buf_dsc_2;
 //    static lv_color_t buf_2_1[MY_DISP_HOR_RES * 10];                        /*A buffer for 10 rows*/
 //    static lv_color_t buf_2_1[MY_DISP_HOR_RES * 10];                        /*An other buffer for 10 rows*/
-     lv_disp_draw_buf_init(&draw_buf_dsc_2, lv_disp_buf1, lv_disp_buf2, DISP_BUF_SIZE);   /*Initialize the display buffer*/
-
+    lv_disp_draw_buf_init(&draw_buf_dsc_2, lv_disp_buf1, lv_disp_buf2, DISP_BUF_SIZE);   /*Initialize the display buffer*/
+    // A/V信号绘图buffer
+    lv_video_third_set_g_lvgl_aux_buf(lv_disp_buf1);
+    // A/V信号显示buffer
+    lv_video_third_set_draw_buf(draw_buf_dsc_2);
 //    /* Example for 3) also set disp_drv.full_refresh = 1 below*/
 //    static lv_disp_draw_buf_t draw_buf_dsc_3;
 //    static lv_color_t buf_3_1[MY_DISP_HOR_RES * MY_DISP_VER_RES];            /*A screen sized buffer*/
@@ -112,7 +118,7 @@ void lv_port_disp_init(void)
 
     /*Used to copy the buffer's content to the display*/
     disp_drv.flush_cb = disp_flush;
-
+    disp_drv.rounder_cb = composite_rounder_cb;
     /*Set a display buffer*/
     disp_drv.draw_buf = &draw_buf_dsc_2;
 
@@ -125,21 +131,8 @@ void lv_port_disp_init(void)
     //disp_drv.gpu_fill_cb = gpu_fill;
 
     /*Finally register the driver*/
-    lv_disp_drv_register(&disp_drv);
-
-
-    // 注册A/V信号输出
-    static lv_disp_drv_t disp_drv_video;
-    FRAME_BUFFER_FORMAT fb_format;
-    fb_format = FB_FORMAT_RGB_16BPP;
-    video_graphics(PAL_160x80, fb_format);
-	lv_disp_drv_init(&disp_drv_video);
-    disp_drv_video.flush_cb = composite_buffer_flush_cb;
-    disp_drv_video.rounder_cb = composite_rounder_cb;
-	disp_drv_video.draw_buf = &draw_buf_dsc_2;
-	disp_drv_video.hor_res = MY_DISP_HOR_RES;
-	disp_drv_video.ver_res = MY_DISP_VER_RES;
-    lv_disp_drv_register(&disp_drv_video);
+    disp_drv_spi = &disp_drv;
+    default_disp = lv_disp_drv_register(disp_drv_spi);
 }
 
 /**********************
@@ -158,19 +151,26 @@ static void disp_init(void)
 static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p)
 {
     /*The most simple case (but also the slowest) to put all pixels to the screen one-by-one*/
+    //DAC flush
+    // 加了以后画面更稳定, 但影响UI流畅度
+    //video_wait_frame();
+    lv_color_t *color_p_dac = color_p;
 
-//    int32_t x;
-//    int32_t y;
-//    for(y = area->y1; y <= area->y2; y++) {
-//        for(x = area->x1; x <= area->x2; x++) {
-//            /*Put a pixel to the display. For example:*/
-//            /*put_px(x, y, *color_p)*/
-//            color_p++;
-//        }
-//    }
-    //LCD_Color_Fill(area->x1,area->y1,area->x2,area->y2,(uint16_t*)color_p);
-    lv_disp_flush_ready(disp_drv);
-    disp_drv_t=disp_drv;
+    register uint32_t pixel_data;
+    for(int y=area->y1; y<=area->y2; ++y) {
+        uint32_t* dest = (uint32_t*)(video_get_frame_buffer_address()+y*video_get_width()*2+area->x1*2);
+        for(int x = area->x1; x <= area->x2; x+=2)
+        {
+            pixel_data = *((uint16_t*)color_p_dac);
+            color_p_dac++;
+            pixel_data |= *((uint16_t*)color_p_dac) << 16;
+            color_p_dac++;
+
+            *dest = pixel_data;
+            dest++;
+        }
+    }
+    //LCD flush
     esp_err_t ret;
     spi_transaction_t t;
 	uint16_t height,width;
@@ -184,56 +184,16 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
     gpio_set_level(PIN_NUM_DC, 1);
  
     ret=spi_device_polling_transmit(my_spi, &t);  //Transmit!
-    assert(ret==ESP_OK);            //Should have had no issues.   
+    assert(ret==ESP_OK);            //Should have had no issues.
     /*IMPORTANT!!!
      *Inform the graphics library that you are ready with the flushing*/
-    //lv_disp_flush_ready(disp_drv);
+	lv_disp_flush_ready(disp_drv);
 }
-static void composite_rounder_cb(lv_disp_drv_t * disp_drv, lv_area_t * area)
-{
-    //16bit color 2 pixels/32 bits
+
+void composite_rounder_cb(lv_disp_drv_t * disp_drv, lv_area_t * area) {
     area->x1 &= ~1;
     area->x2 |= 1;
 }
-static void composite_buffer_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p)
-{
-    register uint32_t pixel_data;
-    for(int y=area->y1; y<=area->y2; y++)
-    {
-        uint32_t* dest = (uint32_t*)(video_get_frame_buffer_address()+y*video_get_width()*2+area->x1*2);
-        for(int x = area->x1; x <= area->x2; x+=2)
-        {
-            pixel_data = *((uint16_t*)color_p);
-            color_p++;
-            pixel_data |= ((uint32_t)(*((uint16_t*)color_p))) << 16;
-            color_p++;
-
-            *dest = pixel_data;
-
-            dest++;
-        }
-    }
-	lv_disp_flush_ready(disp_drv);
-    
-}
-/*OPTIONAL: GPU INTERFACE*/
-
-/*If your MCU has hardware accelerator (GPU) then you can use it to fill a memory with a color*/
-//static void gpu_fill(lv_disp_drv_t * disp_drv, lv_color_t * dest_buf, lv_coord_t dest_width,
-//                    const lv_area_t * fill_area, lv_color_t color)
-//{
-//    /*It's an example code which should be done by your GPU*/
-//    int32_t x, y;
-//    dest_buf += dest_width * fill_area->y1; /*Go to the first line*/
-//
-//    for(y = fill_area->y1; y <= fill_area->y2; y++) {
-//        for(x = fill_area->x1; x <= fill_area->x2; x++) {
-//            dest_buf[x] = color;
-//        }
-//        dest_buf+=dest_width;    /*Go to the next line*/
-//    }
-//}
-
 
 #else /*Enable this file at the top*/
 

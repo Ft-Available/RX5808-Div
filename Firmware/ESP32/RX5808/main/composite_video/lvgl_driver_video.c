@@ -36,6 +36,12 @@ static lv_disp_draw_buf_t disp_buf;
 static lv_disp_drv_t disp_drv;
 static lv_color_t* g_lvgl_aux_buf=NULL;
 
+void lv_video_third_set_g_lvgl_aux_buf(lv_color_t* g){
+    g_lvgl_aux_buf = g;
+}
+void lv_video_third_set_draw_buf(lv_disp_draw_buf_t d){
+    disp_buf = d;
+}
 lv_disp_drv_t* lv_video_disp_get_drv() {
     return &disp_drv;
 }

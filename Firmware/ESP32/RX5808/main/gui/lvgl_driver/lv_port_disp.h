@@ -30,9 +30,6 @@ extern "C" {
  * GLOBAL PROTOTYPES
  **********************/
 void lv_port_disp_init(void);
-void lv_port_video_disp_init(void);
-void lv_port_video_register(void);
-void lv_port_video_remove(void);
 /**********************
  *      MACROS
  **********************/

@@ -26,5 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 void lv_video_disp_init(GRAPHICS_MODE mode);
 void lv_video_disp_init_buf(GRAPHICS_MODE mode, lv_color_t* pixel_buffer, uint32_t buffer_pixel_count, bool just_drv);
+void lv_video_third_set_g_lvgl_aux_buf(lv_color_t* g);
+void lv_video_third_set_draw_buf(lv_disp_draw_buf_t d);
 lv_disp_drv_t* lv_video_disp_get_drv();
 #endif
