@@ -22,6 +22,8 @@ lv_color_t lv_disp_buf2[DISP_BUF_SIZE];
 //static lv_color_t lv_disp_buf3[240*140];
 lv_disp_drv_t *disp_drv_spi;
 lv_disp_t *default_disp = NULL;
+bool g_dac_video_render = false;
+uint8_t refresh_times = 0;
 /**********************
  *      TYPEDEFS
  **********************/
@@ -47,6 +49,19 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
  *   GLOBAL FUNCTIONS
  **********************/
 static void composite_rounder_cb(lv_disp_drv_t * disp_drv, lv_area_t * area);
+void composite_monitor_cb(uint32_t time_ms, uint32_t px_num);
+void composite_switch(bool flag) {
+    g_dac_video_render = flag;
+    if(g_dac_video_render) {
+        // 注册A/V信号输出
+        FRAME_BUFFER_FORMAT fb_format;
+        fb_format = FB_FORMAT_RGB_16BPP;
+        video_graphics(PAL_160x80, fb_format);
+        refresh_times = 6;
+        return;
+    }
+    video_stop();
+}
 void lv_port_disp_init(void)
 {
     /*-------------------------
@@ -85,10 +100,6 @@ void lv_port_disp_init(void)
     // lv_disp_draw_buf_init(&draw_buf_dsc_1, buf_1, NULL, MY_DISP_HOR_RES * 10);   /*Initialize the display buffer*/
 
     /* Example for 2) */
-    // 注册A/V信号输出
-    FRAME_BUFFER_FORMAT fb_format;
-    fb_format = FB_FORMAT_RGB_16BPP;
-    video_graphics(PAL_160x80, fb_format);
     static lv_disp_draw_buf_t draw_buf_dsc_2;
 //    static lv_color_t buf_2_1[MY_DISP_HOR_RES * 10];                        /*A buffer for 10 rows*/
 //    static lv_color_t buf_2_1[MY_DISP_HOR_RES * 10];                        /*An other buffer for 10 rows*/
@@ -119,6 +130,7 @@ void lv_port_disp_init(void)
     /*Used to copy the buffer's content to the display*/
     disp_drv.flush_cb = disp_flush;
     disp_drv.rounder_cb = composite_rounder_cb;
+    disp_drv.monitor_cb = composite_monitor_cb;
     /*Set a display buffer*/
     disp_drv.draw_buf = &draw_buf_dsc_2;
 
@@ -153,21 +165,23 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
     /*The most simple case (but also the slowest) to put all pixels to the screen one-by-one*/
     //DAC flush
     // 加了以后画面更稳定, 但影响UI流畅度
-    //video_wait_frame();
-    lv_color_t *color_p_dac = color_p;
+    // video_wait_frame();
+    if(g_dac_video_render) {
+        lv_color_t *color_p_dac = color_p;
 
-    register uint32_t pixel_data;
-    for(int y=area->y1; y<=area->y2; ++y) {
-        uint32_t* dest = (uint32_t*)(video_get_frame_buffer_address()+y*video_get_width()*2+area->x1*2);
-        for(int x = area->x1; x <= area->x2; x+=2)
-        {
-            pixel_data = *((uint16_t*)color_p_dac);
-            color_p_dac++;
-            pixel_data |= *((uint16_t*)color_p_dac) << 16;
-            color_p_dac++;
+        register uint32_t pixel_data;
+        for(int y=area->y1; y<=area->y2; ++y) {
+            uint32_t* dest = (uint32_t*)(video_get_frame_buffer_address()+y*video_get_width()*2+area->x1*2);
+            for(int x = area->x1; x <= area->x2; x+=2)
+            {
+                pixel_data = *((uint16_t*)color_p_dac);
+                color_p_dac++;
+                pixel_data |= *((uint16_t*)color_p_dac) << 16;
+                color_p_dac++;
 
-            *dest = pixel_data;
-            dest++;
+                *dest = pixel_data;
+                dest++;
+            }
         }
     }
     //LCD flush
@@ -190,7 +204,16 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
 	lv_disp_flush_ready(disp_drv);
 }
 
+void composite_monitor_cb(uint32_t time_ms, uint32_t px_num) {
+    // 每次切换OSD显示时, 都需要强制绘制屏幕
+    if(refresh_times) {
+        lv_obj_invalidate(lv_scr_act());
+        --refresh_times;
+    }
+
+}
 void composite_rounder_cb(lv_disp_drv_t * disp_drv, lv_area_t * area) {
+    // RBG16bit的情况下，保证每次刷新的范围都32bit对齐
     area->x1 &= ~1;
     area->x2 |= 1;
 }

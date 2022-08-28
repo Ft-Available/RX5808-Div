@@ -6,6 +6,7 @@
 #include "lv_port_disp.h"
 #include <stdlib.h>
 #include "beep.h"
+#include "lv_port_disp.h"
 
 //LV_FONT_DECLARE(lv_font_chinese_16);
 LV_FONT_DECLARE(lv_font_chinese_12);
@@ -119,6 +120,8 @@ static void event_callback(lv_event_t* event)
             lv_obj_set_style_bg_color(lock_btn, lv_color_make(255, 0, 0), LV_STATE_DEFAULT);
             lock_flag = false;
         }
+        // 开启或关闭OSD
+        composite_switch(lock_flag);
     }
 }
 

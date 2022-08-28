@@ -30,10 +30,10 @@ extern "C" {
  * GLOBAL PROTOTYPES
  **********************/
 void lv_port_disp_init(void);
+void composite_switch(bool flag);
 /**********************
  *      MACROS
  **********************/
-
 #ifdef __cplusplus
 } /*extern "C"*/
 #endif
