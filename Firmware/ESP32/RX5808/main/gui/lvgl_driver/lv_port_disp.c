@@ -49,7 +49,7 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
  *   GLOBAL FUNCTIONS
  **********************/
 static void composite_rounder_cb(lv_disp_drv_t * disp_drv, lv_area_t * area);
-void composite_monitor_cb(uint32_t time_ms, uint32_t px_num);
+void composite_monitor_cb(lv_disp_drv_t *disp_drv, uint32_t time_ms, uint32_t px_num);
 void composite_switch(bool flag) {
     g_dac_video_render = flag;
     if(g_dac_video_render) {
@@ -174,11 +174,17 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
             uint32_t* dest = (uint32_t*)(video_get_frame_buffer_address()+y*video_get_width()*2+area->x1*2);
             for(int x = area->x1; x <= area->x2; x+=2)
             {
-                pixel_data = *((uint16_t*)color_p_dac);
+                // 做一个二值化
+                pixel_data = (uint16_t)(color_p_dac->full?lv_color_white().full:lv_color_black().full);
                 color_p_dac++;
-                pixel_data |= *((uint16_t*)color_p_dac) << 16;
+                pixel_data |= (uint16_t)(color_p_dac->full?lv_color_white().full:lv_color_black().full) << 16;
                 color_p_dac++;
-
+                /*
+                pixel_data = color_p_dac->full;
+                color_p_dac++;
+                pixel_data |= color_p_dac->full << 16;
+                color_p_dac++;
+                */
                 *dest = pixel_data;
                 dest++;
             }
@@ -204,7 +210,7 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
 	lv_disp_flush_ready(disp_drv);
 }
 
-void composite_monitor_cb(uint32_t time_ms, uint32_t px_num) {
+void composite_monitor_cb(struct _lv_disp_drv_t *, uint32_t time_ms, uint32_t px_num) {
     // 每次切换OSD显示时, 都需要强制绘制屏幕
     if(refresh_times) {
         lv_obj_invalidate(lv_scr_act());

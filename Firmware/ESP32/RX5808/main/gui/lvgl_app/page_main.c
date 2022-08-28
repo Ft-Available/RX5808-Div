@@ -37,7 +37,7 @@ static lv_chart_series_t* rssi_curve;
 
 static lv_timer_t* page_main_update_timer;
 
-static bool lock_flag = false;    //lock
+bool lock_flag = false;    //lock
 
 
 static void page_main_exit(void);
@@ -212,6 +212,11 @@ void page_main_rssi_quality_create(uint16_t type)
         rssi_bar0 = lv_bar_create(main_contain);
         lv_obj_remove_style(rssi_bar0, NULL, LV_PART_KNOB);
         lv_obj_set_size(rssi_bar0, 100, 12);
+        // 二值化OSD优化
+        lv_obj_set_style_bg_color(rssi_bar0, lv_color_black(), LV_PART_MAIN);
+        lv_obj_set_style_border_color(rssi_bar0, lv_color_make(50, 50, 80), LV_PART_MAIN);
+        lv_obj_set_style_border_width(rssi_bar0, 1, LV_PART_MAIN);
+        // 二值化OSD优化 end
         lv_obj_set_style_bg_color(rssi_bar0, lv_color_make(0, 0, 200), LV_PART_INDICATOR);
         lv_obj_set_pos(rssi_bar0, 40, 50);
         lv_bar_set_value(rssi_bar0, Rx5808_Get_Precentage1(), LV_ANIM_ON);
@@ -221,15 +226,20 @@ void page_main_rssi_quality_create(uint16_t type)
         lv_obj_align_to(rssi_label0, rssi_bar0, LV_ALIGN_OUT_RIGHT_MID, 5, 0);
         lv_obj_set_style_bg_opa(rssi_label0, (lv_opa_t)LV_OPA_COVER, LV_STATE_DEFAULT);
         lv_obj_set_style_radius(rssi_label0, 4, LV_STATE_DEFAULT);
-        lv_obj_set_style_bg_color(rssi_label0, lv_color_make(255, 255, 255), LV_STATE_DEFAULT);
+        lv_obj_set_style_bg_color(rssi_label0, lv_color_black(), LV_STATE_DEFAULT);
         lv_obj_set_style_text_font(rssi_label0, &lv_font_montserrat_12, LV_STATE_DEFAULT);
-        lv_obj_set_style_text_color(rssi_label0, lv_color_make(0, 0, 0), LV_STATE_DEFAULT);
+        lv_obj_set_style_text_color(rssi_label0, lv_color_white(), LV_STATE_DEFAULT);
         lv_label_set_recolor(rssi_label0, true);
         lv_label_set_text_fmt(rssi_label0, "%d", (int)Rx5808_Get_Precentage1());
 
         rssi_bar1 = lv_bar_create(main_contain);
         lv_obj_remove_style(rssi_bar1, NULL, LV_PART_KNOB);
         lv_obj_set_size(rssi_bar1, 100, 12);
+        // 二值化OSD优化
+        lv_obj_set_style_bg_color(rssi_bar1, lv_color_black(), LV_PART_MAIN);
+        lv_obj_set_style_border_width(rssi_bar1, 1, LV_PART_MAIN);
+        lv_obj_set_style_border_color(rssi_bar1, lv_color_make(50, 50, 80), LV_PART_MAIN);
+        // 二值化OSD优化 end
         lv_obj_set_style_bg_color(rssi_bar1, lv_color_make(200, 0, 200), LV_PART_INDICATOR);
         lv_obj_set_pos(rssi_bar1, 40, 65);
         lv_bar_set_value(rssi_bar1, Rx5808_Get_Precentage0(), LV_ANIM_ON);
@@ -239,9 +249,9 @@ void page_main_rssi_quality_create(uint16_t type)
         lv_obj_align_to(rssi_label1, rssi_bar1, LV_ALIGN_OUT_RIGHT_MID, 5, 0);
         lv_obj_set_style_bg_opa(rssi_label1, (lv_opa_t)LV_OPA_COVER, LV_STATE_DEFAULT);
         lv_obj_set_style_radius(rssi_label1, 4, LV_STATE_DEFAULT);
-        lv_obj_set_style_bg_color(rssi_label1, lv_color_make(255, 255, 255), LV_STATE_DEFAULT);
+        lv_obj_set_style_bg_color(rssi_label1, lv_color_black(), LV_STATE_DEFAULT);
         lv_obj_set_style_text_font(rssi_label1, &lv_font_montserrat_12, LV_STATE_DEFAULT);
-        lv_obj_set_style_text_color(rssi_label1, lv_color_make(0, 0, 0), LV_STATE_DEFAULT);
+        lv_obj_set_style_text_color(rssi_label1, lv_color_white(), LV_STATE_DEFAULT);
         lv_label_set_recolor(rssi_label1, true);
         lv_label_set_text_fmt(rssi_label1, "%d", (int)Rx5808_Get_Precentage0());
 
