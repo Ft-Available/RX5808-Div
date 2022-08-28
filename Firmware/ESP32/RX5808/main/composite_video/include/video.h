@@ -66,7 +66,6 @@ typedef enum _GRAPHICS_MODE
     PAL_360x288, ///< PAL Overscan DV/BT.601 (6.75 MHz)
     PAL_720x288, ///< PAL Overscan DV/BT.601 (13.5 MHz), non-interlaced
     PAL_160x80, ///< 
-    PAL_320x80, ///< 
 
     NTSC_256x192, ///< NTSC ZX Spectrum, MSX
     NTSC_320x192, ///< NTSC Atari 8 bit "Graphics 8"

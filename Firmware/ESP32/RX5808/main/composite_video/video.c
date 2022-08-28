@@ -1036,10 +1036,7 @@ void video_graphics(GRAPHICS_MODE mode, FRAME_BUFFER_FORMAT fb_format)
             video_init(256, 192, fb_format, VIDEO_MODE_PAL, true);
             break;
         case PAL_160x80:
-            video_init(160, 80, fb_format, VIDEO_MODE_PAL, true);
-            break;
-        case PAL_320x80:
-            video_init(320,80, fb_format, VIDEO_MODE_PAL, false);
+            video_init(160, 80, fb_format, VIDEO_MODE_PAL, false);
             break;
             
         case NTSC_256x192:
