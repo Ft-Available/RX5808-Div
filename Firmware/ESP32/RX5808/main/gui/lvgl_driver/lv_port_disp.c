@@ -13,10 +13,12 @@
 #include "../../lvgl.h"
 #include "lcd.h"
 #include "lvgl_driver_video.h"
+#include "driver/gpio.h"
 /*********************
  *      DEFINES
  *********************/
 #define DISP_BUF_SIZE        (MY_DISP_HOR_RES * MY_DISP_VER_RES)
+#define DAC_VIDEO_SWITCH     9
 lv_color_t lv_disp_buf1[DISP_BUF_SIZE];
 lv_color_t lv_disp_buf2[DISP_BUF_SIZE];
 //static lv_color_t lv_disp_buf3[240*140];
@@ -58,8 +60,10 @@ void composite_switch(bool flag) {
         fb_format = FB_FORMAT_RGB_16BPP;
         video_graphics(PAL_160x80, fb_format);
         refresh_times = 1;
+	    gpio_set_level(DAC_VIDEO_SWITCH, 1);
         return;
     }
+	gpio_set_level(DAC_VIDEO_SWITCH, 0);
     video_stop();
 }
 void lv_port_disp_init(void)
