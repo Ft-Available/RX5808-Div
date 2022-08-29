@@ -34,7 +34,7 @@ static void group_obj_scroll(lv_group_t* g);
 static void page_scan_table_exit(void);
 
 
-static const char fre_channel_nale[6][2] = { "A","B","C","D","E","F" };
+static const char fre_channel_nale[6][2] = { "A","B","E","F","R","L" };
 static const int fre_channel_num[] = { 1,2,3,4,5,6,7,8 };
 static const lv_color_t channel_label_color[] = { {.full = 0XFC07},{.full = 0XFC00}, {.full = 0X841F},{.full = 0XF81F}, {.full = 0xBE7f},{.full = 0x7FFF} };
 
@@ -95,13 +95,13 @@ static void page_scan_table_timer_event(lv_timer_t* tmr)
         lv_obj_set_pos(obj, 17 * (repeat_count % 8) + 20, 0);
         lv_obj_set_style_border_width(obj, 2, LV_STATE_DEFAULT);
         lv_label_set_long_mode(obj, LV_LABEL_LONG_WRAP);
-        lv_label_set_text_fmt(fre_info_label, "%c%d:%d", 'A' + time_repeat_count / 8, time_repeat_count % 8, Rx5808_Freq[repeat_count / 8][repeat_count % 8]);
+        lv_label_set_text_fmt(fre_info_label, "%c%d:%d", Rx5808_ChxMap[time_repeat_count / 8], time_repeat_count % 8, Rx5808_Freq[repeat_count / 8][repeat_count % 8]);
         if (repeat_count == 47)
         {
             lv_label_set_text_fmt(scan_info_label, "%s", "Finish!");
             lv_obj_set_style_text_opa(scan_info_label, LV_OPA_COVER, LV_STATE_DEFAULT);
             lv_obj_set_style_text_color(scan_info_label, lv_color_make(0, 255, 0), LV_STATE_DEFAULT);
-            lv_label_set_text_fmt(fre_info_label, "%c%d:%d", 'A' + max_channel / 8, max_channel % 8, Rx5808_Freq[max_channel / 8][max_channel % 8]);
+            lv_label_set_text_fmt(fre_info_label, "%c%d:%d", Rx5808_ChxMap[max_channel / 8], max_channel % 8, Rx5808_Freq[max_channel / 8][max_channel % 8]);
             RX5808_Set_Freq(Rx5808_Freq[max_channel / 8][max_channel % 8]);
             Rx5808_Set_Channel(max_channel);
             rx5808_div_setup_upload();
@@ -215,7 +215,7 @@ void page_scan_table_create()
     lv_obj_align(fre_info_label, LV_ALIGN_TOP_RIGHT, -2, 2);
     lv_obj_set_style_bg_color(fre_info_label, lv_color_make(0, 0, 0), LV_STATE_DEFAULT);
     lv_obj_set_style_border_color(fre_info_label, lv_color_make(0x00, 0x00, 0x00), LV_STATE_DEFAULT);
-    lv_label_set_text_fmt(fre_info_label, "%c%d:%d", 'A' + time_repeat_count / 8, time_repeat_count % 8, Rx5808_Freq[0][0]);
+    lv_label_set_text_fmt(fre_info_label, "%c%d:%d", Rx5808_ChxMap[time_repeat_count / 8], time_repeat_count % 8, Rx5808_Freq[0][0]);
     lv_obj_set_style_text_font(fre_info_label, &lv_font_montserrat_16, LV_STATE_DEFAULT);
     lv_obj_set_style_text_color(fre_info_label, lv_color_make(255, 128, 255), LV_STATE_DEFAULT);
     lv_label_set_long_mode(fre_info_label, LV_LABEL_LONG_WRAP);

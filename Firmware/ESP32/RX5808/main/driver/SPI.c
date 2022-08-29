@@ -1,10 +1,12 @@
 #include "SPI.h"
 #include <string.h>
+#include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "lv_port_disp.h"
 #include "../../lvgl.h"
 
 #define SPI_BAUDRATE_84MHZ  84*1000*1000
+#define SPI_BAUDRATE_80MHZ  80*1000*1000
 #define SPI_BAUDRATE_42MHZ  42*1000*1000
 #define SPI_BAUDRATE_21MHZ  21*1000*1000
 #define SPI_BAUDRATE_12MHZ  12*1000*1000
@@ -43,7 +45,7 @@ void spi_init()
         .max_transfer_sz=160*80*2
     };
     spi_device_interface_config_t devcfg={
-        .clock_speed_hz=SPI_BAUDRATE_84MHZ,           //Clock out at 10 MHz
+        .clock_speed_hz=SPI_BAUDRATE_80MHZ,           //Clock out at 10 MHz
         .mode=0,                                //SPI mode 0
         .spics_io_num=SPI_NUM_CS,               //CS pin
         .queue_size=7,                          //We want to be able to queue 7 transactions at a time

@@ -30,6 +30,7 @@ volatile uint16_t Rx5808_Language;
 volatile uint16_t Rx5808_Signal_Source;
 
 
+const char Rx5808_ChxMap[6] = {'A', 'B', 'E', 'F', 'R', 'L'};
 const uint16_t Rx5808_Freq[6][8]=
 {
 	  {5865,5845,5825,5805,5785,5765,5745,5725},	  //A	CH1-8

@@ -1,3 +1,5 @@
+Firmware/ESP32/RX5808/build
+.DS_Store
 # Prerequisites
 *.d
 
