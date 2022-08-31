@@ -214,7 +214,7 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
 	lv_disp_flush_ready(disp_drv);
 }
 
-void composite_monitor_cb(struct _lv_disp_drv_t *, uint32_t time_ms, uint32_t px_num) {
+void composite_monitor_cb(lv_disp_drv_t * disp_drv, uint32_t time_ms, uint32_t px_num) {
     // 每次切换OSD显示时, 都需要强制绘制屏幕
     if(refresh_times) {
         lv_obj_invalidate(lv_scr_act());
