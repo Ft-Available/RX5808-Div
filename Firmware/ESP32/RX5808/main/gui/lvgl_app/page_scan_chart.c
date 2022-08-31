@@ -83,6 +83,7 @@ static void page_scan_chart_exit()
 
 void page_scan_chart_create()
 {
+    lv_color_t chart_bg_color = lock_flag?lv_color_black():lv_color_make(100, 100, 100);
     time_repeat_count = 0;
     page_scan_chart_contain = lv_obj_create(lv_scr_act());
     lv_obj_remove_style_all(page_scan_chart_contain);
@@ -103,7 +104,7 @@ void page_scan_chart_create()
     lv_chart_set_range(rssi_quality_chart, LV_CHART_AXIS_PRIMARY_X, 0, 8);
 
     lv_obj_set_style_border_color(rssi_quality_chart, lv_color_make(0, 0, 0), LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(rssi_quality_chart, lv_color_make(100, 100, 100), LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(rssi_quality_chart, chart_bg_color, LV_STATE_DEFAULT);
     lv_obj_set_style_bg_opa(rssi_quality_chart, 100, LV_STATE_DEFAULT);
     //lv_obj_set_style_text_color(rssi_quality_chart, lv_color_make(0, 0, 255), LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(rssi_quality_chart, 0, LV_STATE_DEFAULT);

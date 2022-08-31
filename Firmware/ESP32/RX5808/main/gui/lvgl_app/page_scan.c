@@ -77,7 +77,10 @@ static void page_scan_exit()
 
 void page_scan_create()
 {
-
+    // 解锁并输出OSD时，适配灰度的OSD
+    lv_color_t label_bg_color = lock_flag?lv_color_black():LABEL_DEFAULT_COLOR;
+    lv_color_t label_focuse_bg_color = lock_flag?lv_color_make(0, 0, 0):LABEL_FOCUSE_COLOR;
+    lv_color_t label_text_color = lock_flag?lv_color_white():lv_color_black();
     menu_scan_contain = lv_obj_create(lv_scr_act());
     lv_obj_remove_style_all(menu_scan_contain);
     lv_obj_set_style_bg_color(menu_scan_contain, lv_color_make(0, 0, 0), LV_STATE_DEFAULT);
@@ -88,10 +91,12 @@ void page_scan_create()
     chart_label = lv_label_create(menu_scan_contain);
     lv_obj_set_style_bg_opa(chart_label, (lv_opa_t)LV_OPA_COVER, LV_STATE_DEFAULT);
     lv_obj_set_style_radius(chart_label, 4, LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(chart_label, LABEL_DEFAULT_COLOR, LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(chart_label, LABEL_FOCUSE_COLOR, LV_STATE_FOCUSED);
+    lv_obj_set_style_bg_color(chart_label, label_bg_color, LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(chart_label, label_focuse_bg_color, LV_STATE_FOCUSED);
+    lv_obj_set_style_border_color(chart_label, label_text_color, LV_STATE_FOCUSED);
+    lv_obj_set_style_border_width(chart_label, 1, LV_STATE_FOCUSED);
     //lv_obj_set_style_text_font(chart_label, &lv_font_montserrat_12, LV_STATE_DEFAULT);
-    lv_obj_set_style_text_color(chart_label, lv_color_make(0, 0, 0), LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(chart_label, label_text_color, LV_STATE_DEFAULT);
     //lv_label_set_text_fmt(chart_label, "Show with Chart");
     lv_obj_align(chart_label, LV_ALIGN_TOP_MID, 0, 10);
     lv_label_set_long_mode(chart_label, LV_LABEL_LONG_WRAP);
@@ -99,10 +104,12 @@ void page_scan_create()
     table_label = lv_label_create(menu_scan_contain);
     lv_obj_set_style_bg_opa(table_label, (lv_opa_t)LV_OPA_COVER, LV_STATE_DEFAULT);
     lv_obj_set_style_radius(table_label, 4, LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(table_label, LABEL_DEFAULT_COLOR, LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(table_label, LABEL_FOCUSE_COLOR, LV_STATE_FOCUSED);
+    lv_obj_set_style_bg_color(table_label, label_bg_color, LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(table_label, label_focuse_bg_color, LV_STATE_FOCUSED);
+    lv_obj_set_style_border_color(table_label, label_text_color, LV_STATE_FOCUSED);
+    lv_obj_set_style_border_width(table_label, 1, LV_STATE_FOCUSED);
     //lv_obj_set_style_text_font(table_label, &lv_font_montserrat_12, LV_STATE_DEFAULT);
-    lv_obj_set_style_text_color(table_label, lv_color_make(0, 0, 0), LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(table_label, label_text_color, LV_STATE_DEFAULT);
     //lv_label_set_text_fmt(table_label, "Show with Table");
     lv_obj_align(table_label, LV_ALIGN_TOP_MID, 0, 32);
     lv_label_set_long_mode(table_label, LV_LABEL_LONG_WRAP);
@@ -111,10 +118,12 @@ void page_scan_create()
     calib_label = lv_label_create(menu_scan_contain);
     lv_obj_set_style_bg_opa(calib_label, (lv_opa_t)LV_OPA_COVER, LV_STATE_DEFAULT);
     lv_obj_set_style_radius(calib_label, 4, LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(calib_label, LABEL_DEFAULT_COLOR, LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(calib_label, LABEL_FOCUSE_COLOR, LV_STATE_FOCUSED);
+    lv_obj_set_style_bg_color(calib_label, label_bg_color, LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(calib_label, label_focuse_bg_color, LV_STATE_FOCUSED);
+    lv_obj_set_style_border_color(calib_label, label_text_color, LV_STATE_FOCUSED);
+    lv_obj_set_style_border_width(calib_label, 1, LV_STATE_FOCUSED);
     //lv_obj_set_style_text_font(calib_label, &lv_font_montserrat_12, LV_STATE_DEFAULT);
-    lv_obj_set_style_text_color(calib_label, lv_color_make(0, 0, 0), LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(calib_label, label_text_color, LV_STATE_DEFAULT);
     //lv_label_set_text_fmt(calib_label, "RSSI Calibration");
     lv_obj_align(calib_label, LV_ALIGN_BOTTOM_MID, 0, -10);
     lv_label_set_long_mode(calib_label, LV_LABEL_LONG_WRAP);

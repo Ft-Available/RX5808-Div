@@ -20,13 +20,13 @@ void lcd_spi_pre_transfer_callback(spi_transaction_t *t)
     int dc=(int)t->user;
     gpio_set_level(PIN_NUM_DC, dc);
 }
-extern lv_disp_drv_t *disp_drv_t;
+extern lv_disp_drv_t *disp_drv_spi;
 extern LV_ATTRIBUTE_FLUSH_READY void lv_disp_flush_ready(lv_disp_drv_t * disp_drv); 
 void lcd_spi_transfer_completed_callback(spi_transaction_t *trans)
 {
     int info=(int)trans->user;
     if(info==1)
-        lv_disp_flush_ready(disp_drv_t);
+        lv_disp_flush_ready(disp_drv_spi);
 }
 
 spi_device_handle_t my_spi;
@@ -45,7 +45,7 @@ void spi_init()
         .max_transfer_sz=160*80*2
     };
     spi_device_interface_config_t devcfg={
-        .clock_speed_hz=SPI_BAUDRATE_80MHZ,           //Clock out at 10 MHz
+        .clock_speed_hz=SPI_BAUDRATE_80MHZ,     //Clock out at 10 MHz
         .mode=0,                                //SPI mode 0
         .spics_io_num=SPI_NUM_CS,               //CS pin
         .queue_size=7,                          //We want to be able to queue 7 transactions at a time

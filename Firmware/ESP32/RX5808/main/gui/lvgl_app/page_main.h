@@ -42,7 +42,7 @@ void page_main_create(void);
     /**********************
     *      MACROS
     **********************/
-
+extern bool lock_flag;
 
 #ifdef __cplusplus
 } /*extern "C"*/
