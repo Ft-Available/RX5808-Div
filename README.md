@@ -1,5 +1,8 @@
 # RX5808-Div
 演示视频见：https://www.bilibili.com/video/BV1yr4y1371b
+- OSD功能
+  - OSD功能原理图: https://oshwhub.com/chisbread/rx5808-div-chis
+  - 效果演示: https://www.bilibili.com/video/BV1ya411g78U 与接收机UI完全同步
 
 1.渲染图
 
@@ -14,7 +17,7 @@
 
 1)主界面长按确定键，可锁定/解锁手动频道,短按进入菜单；
   解锁情况下，按上下左右可调整频率。
-  
+
 2）菜单界面分为三块内容：扫描；设置；关于。
 
    按上下切换菜单选项，确定进入子菜单，左键返回主界面
