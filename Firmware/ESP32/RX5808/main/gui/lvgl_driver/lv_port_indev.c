@@ -346,21 +346,7 @@ static uint32_t keypad_get_key(void)
 {
 
     key_raw = adc1_get_raw(KEY_ADC_CHAN);
-    printf("%d\n",key_raw);
-    //Test Values
-#ifdef CHIS_TEST
-    if(key_raw>2300&&key_raw<2500)
-        return LV_KEY_UP;
-    if(key_raw<500)
-        return LV_KEY_DOWN;
-    if(key_raw>2700&&key_raw<2900)
-        return LV_KEY_LEFT;
-    if(key_raw>1500&&key_raw<1800)
-        return LV_KEY_RIGHT;
-    if(key_raw>3000&&key_raw<3700)
-        return LV_KEY_ENTER;
-    return 0;
-#endif
+    //printf("KEY_ADC_V: %d\n",key_raw);
     if(key_raw>3100&&key_raw<3500)
         return LV_KEY_UP;
     if(key_raw<2800&&key_raw>2400)
