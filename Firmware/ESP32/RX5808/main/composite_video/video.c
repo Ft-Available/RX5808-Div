@@ -15,7 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
+#include "esp_idf_version.h"
 #include "sdkconfig.h"
 #include "video.h"
 #include "esp_heap_caps.h"
@@ -252,8 +252,14 @@ static void setup_video_signal(VIDEO_MODE mode, DAC_FREQUENCY dac_frequency, uin
 static void __rtc_clk_apll_enable(bool enable, uint32_t sdm0, uint32_t sdm1,
         uint32_t sdm2, uint32_t o_div) 
 {
+
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
+    rtc_clk_apll_enable(enable, sdm0, sdm1, sdm2, o_div);
+#else
     rtc_clk_apll_enable(enable);
     rtc_clk_apll_coeff_set(o_div, sdm0, sdm1, sdm2);
+#endif
+
 }
 static void set_dac_frequency(void)
 {
