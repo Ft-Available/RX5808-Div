@@ -18,11 +18,11 @@
 #include "driver/gpio.h"
 #include "driver/i2s.h"
 #include "math.h"
-
 const float burstPerSample = (2 * M_PI) / (13333333 / 4433618.75);
 const float colorFactor = (M_PI * 2) / 16;
 const float burstPhase = M_PI / 4 * 3;
-static lldesc_t DRAM_ATTR dma_buffers[2] = {};
+const int DMA_BUFFER_COUNT = 2;
+static lldesc_t DRAM_ATTR dma_buffers[DMA_BUFFER_COUNT] = {};
 static intr_handle_t i2s_interrupt_handle;
 static void IRAM_ATTR i2s_interrupt(void *dma_buffer_size_bytes) {
 	if (I2S0.int_st.out_eof) {
@@ -39,7 +39,7 @@ static void IRAM_ATTR sendline(unsigned short *l) {
     }
 }
 SimplePALOutput::SimplePALOutput() {
-    lineCounts = 1;
+    lineCounts = 0;
     for(int i = 0; i < syncSamples; i++) {
         shortSync[i ^ 1] = syncLevel << 8;
         longSync[(lineSamples - syncSamples + i) ^ 1] = blankLevel  << 8;
@@ -77,7 +77,7 @@ SimplePALOutput::SimplePALOutput() {
 }
 void SimplePALOutput::start(Graphics *gra) {
     graph = gra;
-    const size_t dma_buffer_size_bytes = lineSamples * sizeof(unsigned short);
+    const size_t dma_buffer_size_bytes = lineSamples * sizeof(uint8_t);
     //ESP_LOGD(TAG, "Computed DMA buffer size: %u", dma_buffer_size_bytes);
 
     periph_module_enable(PERIPH_I2S0_MODULE);
@@ -102,7 +102,6 @@ void SimplePALOutput::start(Graphics *gra) {
     I2S0.clkm_conf.clka_en = 1;                 // use clk_apll clock
     I2S0.fifo_conf.tx_fifo_mod = 1; // 16-bit single channel data
 
-    const size_t DMA_BUFFER_COUNT = sizeof(dma_buffers)/sizeof(lldesc_t);
     for (size_t n=0; n<DMA_BUFFER_COUNT; n++) {
         //ESP_LOGD(TAG, "Allocating DMA buffer: %u bytes", dma_buffer_size_bytes);
         dma_buffers[n].buf = (uint8_t*)heap_caps_calloc(dma_buffer_size_bytes, sizeof(uint8_t), MALLOC_CAP_DMA);
@@ -117,10 +116,10 @@ void SimplePALOutput::start(Graphics *gra) {
     //this is the hack that enables the highest sampling rate possible ~13MHz, have fun
     //=13500001
     #if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
-        rtc_clk_apll_enable(1, 0xCD, 0xCC, 0x07, 6); 
+        rtc_clk_apll_enable(1, 0xCD, 0xCC, 0x07, 2);
     #else
         rtc_clk_apll_enable(1);
-        rtc_clk_apll_coeff_set(6, 0xCD, 0xCC, 0x07);
+        rtc_clk_apll_coeff_set(2, 0xCD, 0xCC, 0x07);
     #endif
     ESP_ERROR_CHECK(dac_output_enable(DAC_CHANNEL_1));
 
@@ -170,7 +169,7 @@ bool SimplePALOutput::iterator() {
         sendline(blank);
     } else if(lineCounts >= 44 && lineCounts < 284){
         //make 2 lines
-        int y_off = (lineCounts-44);// [0, 240)
+        int y_off = (lineCounts-44);// [0, 239]
         if (y_off%2 == 0) {
             char *pixels0 = (graph->backbuffer)[y_off];  // max: 238
             char *pixels1 = (graph->backbuffer)[y_off+1];// max: 239
@@ -202,7 +201,7 @@ bool SimplePALOutput::iterator() {
     } else if(lineCounts >= 309 && lineCounts < 312) {
         sendline(shortSync);
     } else {
-        lineCounts = 1;
+        lineCounts = 0;
         return true;
     }
     ++lineCounts;
