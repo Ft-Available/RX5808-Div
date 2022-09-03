@@ -57,7 +57,7 @@ void composite_switch(bool flag) {
     g_dac_video_render = flag;
     if(g_dac_video_render) {
         // 注册A/V信号输出
-        graph_video_start();
+        graph_video_start(0);
         refresh_times = 1;
 	    gpio_set_level(DAC_VIDEO_SWITCH, 1);
         return;
@@ -125,19 +125,19 @@ static void disp_init(void)
 /*Flush the content of the internal buffer the specific area on the display
  *You can use DMA or any hardware acceleration to do this operation in the background but
  *'lv_disp_flush_ready()' has to be called when finished.*/
+uint16_t videoframe_cnt = 0;
 static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p)
 {
     /*The most simple case (but also the slowest) to put all pixels to the screen one-by-one*/
     //DAC flush
     if(g_dac_video_render) {
         //加了以后画面更稳定, 但影响UI流畅度
+        graph_video_sync();
         lv_color_t *color_p_dac = color_p;
         for(int y = area->y1; y <= area->y2; ++y) {
             for(int x = area->x1; x <= area->x2; ++x) {
-                graph_video_set_color(x+20, y+20, 
-                    LV_COLOR_GET_R(*color_p_dac),
-                    LV_COLOR_GET_G(*color_p_dac),
-                    LV_COLOR_GET_B(*color_p_dac));
+                graph_video_set_color_8bit(x+50, y+70, 
+                    lv_color_to8(*color_p_dac));
                 ++color_p_dac;
             }
         }
