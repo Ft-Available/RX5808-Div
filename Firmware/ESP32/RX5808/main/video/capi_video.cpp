@@ -37,10 +37,6 @@ void graph_video_sync() {
 void graph_video_start(bool ntsc) {
     graph = bmp_create(XRES, YRES, 8);
     bmp_clear(graph, 0);
-    if(palette_ram) {
-        delete []palette_ram;
-        palette_ram = 0;
-    }
     _lines = graph->line;
     if(ntsc) {
         ntsc_palette();
@@ -58,6 +54,10 @@ void graph_video_set_color_8bit(int x_pos, int y_pos, uint8_t c) {
     graph->line[y_pos][x_pos] = c;
 }
 void graph_video_stop() {
+    video_destroy();
+    bmp_destroy(&graph);
+    delete []palette_ram;
+    palette_ram = 0;
 }
 
 const uint32_t* ntsc_palette() {

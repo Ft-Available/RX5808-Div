@@ -64,7 +64,7 @@ int _pal_ = 0;
 lldesc_t _dma_desc[4] = {0};
 intr_handle_t _isr_handle;
 EventGroupHandle_t g_video_event_group = NULL;
-
+bool g_video_initialized = false;
 extern "C"
 void IRAM_ATTR video_isr(volatile void* buf);
 
@@ -196,35 +196,6 @@ void* MALLOC32(int x, const char* label)
         printf("MALLOC32 allocation of %s:%d %08X\n",label,x,(unsigned int)r);
     return r;
 }
-
-#else
-
-//====================================================================================================
-//====================================================================================================
-//  Simulator
-//
-
-#define IRAM_ATTR
-#define DRAM_ATTR
-
-void video_init_hw(int line_width, int samples_per_cc);
-
-uint32_t xthal_get_ccount() {
-    unsigned int lo,hi;
-    __asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
-    return lo;
-    //return ((uint64_t)hi << 32) | lo;
-}
-
-void audio_sample(uint8_t s);
-
-void ir_sample();
-
-int get_hid_ir(uint8_t* buf)
-{
-    return 0;
-}
-
 #endif
 
 //====================================================================================================
@@ -319,8 +290,39 @@ void video_init(int samples_per_cc, int machine, const uint32_t* palette, int nt
     
     _active_lines = 240;
     video_init_hw(_line_width,_samples_per_cc);    // init the hardware
+    g_video_initialized = true;
 }
 
+void video_destroy() {
+    if( !g_video_initialized ) {
+        return;
+    }
+    // disable interrupt
+    esp_intr_disable(_isr_handle);
+    esp_intr_free(_isr_handle);
+    // stop DAC
+    I2S0.out_link.start = 0;
+
+    //disable i2s DAC
+    dac_i2s_disable();
+    dac_output_disable(DAC_CHANNEL_1);
+    
+    // free DMA buffers
+    for(size_t i=0;i<2;i++) {
+        if( _dma_desc[i].buf ) {
+            heap_caps_free((uint8_t*)_dma_desc[i].buf);
+            _dma_desc[i].buf=NULL;
+        }
+    }
+    // disable I2S
+    periph_module_disable(PERIPH_I2S0_MODULE);
+
+    if( g_video_event_group ) {
+        vEventGroupDelete(g_video_event_group);
+        g_video_event_group = NULL;
+    }
+    g_video_initialized = false;
+}
 //===================================================================================================
 //===================================================================================================
 // PAL
@@ -762,7 +764,6 @@ void video_wait_frame(void)
 extern "C"
 void IRAM_ATTR video_isr(volatile void* vbuf)
 {
-    static bool even_frame = true;
     if (!_lines)
         return;
 
@@ -770,19 +771,7 @@ void IRAM_ATTR video_isr(volatile void* vbuf)
 
     int i = _line_counter++;
     uint16_t* buf = (uint16_t*)vbuf;
-    if(i == 0) {
-        even_frame = !even_frame;
-        xEventGroupClearBits( g_video_event_group,
-            COMPOSITE_EVENT_FRAME_END_BIT |
-            COMPOSITE_EVENT_FRAME_VISIBLE_END_BIT
-        );
-    }
     if (_pal_) { 
-        if( i == 310 && even_frame) {
-            xEventGroupSetBits(g_video_event_group, COMPOSITE_EVENT_FRAME_VISIBLE_END_BIT);
-        } else if(i == 312 && even_frame) {
-            xEventGroupSetBits(g_video_event_group, COMPOSITE_EVENT_FRAME_END_BIT);
-        }
         // pal
         if (i < 32) {
             blanking(buf,false);                // pre render/black 0-32
@@ -793,15 +782,12 @@ void IRAM_ATTR video_isr(volatile void* vbuf)
         } else if (i < 304) {                   // post render/black 272-304
             if (i < 272)                        // slight optimization here, once you have 2 blanking buffers
                 blanking(buf,false);
+            xEventGroupSetBits(g_video_event_group, COMPOSITE_EVENT_FRAME_VISIBLE_END_BIT);
         } else {
             pal_sync(buf,i);                    // 8 lines of sync 304-312
-        }
-    } else {
-        if( i == (_active_lines + 1) && even_frame) {
-            xEventGroupSetBits(g_video_event_group, COMPOSITE_EVENT_FRAME_VISIBLE_END_BIT);
-        } else if(i == (_active_lines + 7) && even_frame) {
             xEventGroupSetBits(g_video_event_group, COMPOSITE_EVENT_FRAME_END_BIT);
         }
+    } else {
         // ntsc
         if (i < _active_lines) {                // active video
             sync(buf,_hsync);
@@ -809,9 +795,11 @@ void IRAM_ATTR video_isr(volatile void* vbuf)
             blit(_lines[i],buf + _active_start);
 
         } else if (i < (_active_lines + 5)) {   // post render/black
+            xEventGroupSetBits(g_video_event_group, COMPOSITE_EVENT_FRAME_VISIBLE_END_BIT);
             blanking(buf,false);
 
         } else if (i < (_active_lines + 8)) {   // vsync
+            xEventGroupSetBits(g_video_event_group, COMPOSITE_EVENT_FRAME_END_BIT);
             blanking(buf,true);
 
         } else {                                // pre render/black
@@ -822,6 +810,10 @@ void IRAM_ATTR video_isr(volatile void* vbuf)
     if (_line_counter == _line_count) {
         _line_counter = 0;                      // frame is done
         _frame_counter++;
+        xEventGroupClearBits( g_video_event_group,
+            COMPOSITE_EVENT_FRAME_END_BIT |
+            COMPOSITE_EVENT_FRAME_VISIBLE_END_BIT
+        );
     }
 
     ISR_END();

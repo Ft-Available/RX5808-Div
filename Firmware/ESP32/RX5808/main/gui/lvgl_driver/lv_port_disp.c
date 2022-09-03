@@ -109,7 +109,7 @@ void lv_port_disp_init(void)
     /*Finally register the driver*/
     disp_drv_spi = &disp_drv;
     default_disp = lv_disp_drv_register(disp_drv_spi);
-    composite_switch(true);
+    //composite_switch(true);
 }
 
 /**********************
@@ -131,8 +131,6 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
     /*The most simple case (but also the slowest) to put all pixels to the screen one-by-one*/
     //DAC flush
     if(g_dac_video_render) {
-        //加了以后画面更稳定, 但影响UI流畅度
-        graph_video_sync();
         lv_color_t *color_p_dac = color_p;
         for(int y = area->y1; y <= area->y2; ++y) {
             for(int x = area->x1; x <= area->x2; ++x) {
@@ -160,6 +158,10 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
     /*IMPORTANT!!!
      *Inform the graphics library that you are ready with the flushing*/
 	lv_disp_flush_ready(disp_drv);
+    if(g_dac_video_render) {
+        //加了以后画面更稳定, 但影响UI流畅度
+        graph_video_sync();
+    }
 }
 
 void composite_monitor_cb(lv_disp_drv_t * disp_drv, uint32_t time_ms, uint32_t px_num) {
