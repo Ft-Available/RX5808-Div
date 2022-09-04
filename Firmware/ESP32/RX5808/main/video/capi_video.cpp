@@ -31,33 +31,33 @@ enum
 };
 const uint32_t* pal_palette();
 const uint32_t* ntsc_palette();
-void graph_video_sync() {
-    video_wait_frame();
-}
 void graph_video_start(bool ntsc) {
     graph = bmp_create(XRES, YRES, 8);
     bmp_clear(graph, 0);
     _lines = graph->line;
     if(ntsc) {
         ntsc_palette();
-        video_init(4, EMU_SMS, palette_ram, 1);
+        video_init(4, EMU_RGB_8BIT, palette_ram, 1);
     } else {
         pal_palette();
-        video_init(4, EMU_SMS, palette_ram, 0);
+        video_init(4, EMU_RGB_8BIT, palette_ram, 0);
     }
-}
-void graph_video_set_color(int x_pos, int y_pos, uint8_t r,uint8_t g,uint8_t b) {
-    graph->line[y_pos][x_pos] = (((r >> 5) & 0x4) | ((g >> 6) & 0x2) | (b >> 7)) +1;
-}
-
-void graph_video_set_color_8bit(int x_pos, int y_pos, uint8_t c) {
-    graph->line[y_pos][x_pos] = c;
 }
 void graph_video_stop() {
     video_destroy();
     bmp_destroy(&graph);
     delete []palette_ram;
     palette_ram = 0;
+}
+void IRAM_ATTR graph_video_sync() {
+    video_wait_frame();
+}
+void IRAM_ATTR graph_video_set_color(int x_pos, int y_pos, uint8_t r,uint8_t g,uint8_t b) {
+    graph->line[y_pos][x_pos] = (((r >> 5) & 0x4) | ((g >> 6) & 0x2) | (b >> 7)) +1;
+}
+
+void IRAM_ATTR graph_video_set_color_8bit(int x_pos, int y_pos, uint8_t c) {
+    graph->line[y_pos][x_pos] = c;
 }
 
 const uint32_t* ntsc_palette() {

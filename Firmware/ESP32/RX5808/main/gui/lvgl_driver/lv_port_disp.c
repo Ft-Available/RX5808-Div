@@ -12,7 +12,6 @@
 #include "lv_port_disp.h"
 #include "../../lvgl.h"
 #include "lcd.h"
-//#include "lvgl_driver_video.h"
 #include "capi_video.h"
 #include "driver/gpio.h"
 /*********************
@@ -26,34 +25,21 @@ lv_color_t lv_disp_buf2[DISP_BUF_SIZE];
 lv_disp_drv_t *disp_drv_spi;
 lv_disp_t *default_disp = NULL;
 bool g_dac_video_render = false;
+bool g_dac_video_sync = false;
+uint16_t sync_release_times = 0;
 uint8_t refresh_times = 0;
-/**********************
- *      TYPEDEFS
- **********************/
-
-/**********************
- *  STATIC PROTOTYPES
- **********************/
 static void disp_init(void);
 
 static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p);
-//static void gpu_fill(lv_disp_drv_t * disp_drv, lv_color_t * dest_buf, lv_coord_t dest_width,
-//        const lv_area_t * fill_area, lv_color_t color);
-
-/**********************
- *  STATIC VARIABLES
- **********************/
-
-/**********************
- *      MACROS
- **********************/
-
 /**********************
  *   GLOBAL FUNCTIONS
  **********************/
-static void composite_rounder_cb(lv_disp_drv_t * disp_drv, lv_area_t * area);
-void composite_monitor_cb(lv_disp_drv_t *disp_drv, uint32_t time_ms, uint32_t px_num);
-void composite_switch(bool flag) {
+static void IRAM_ATTR composite_rounder_cb(lv_disp_drv_t * disp_drv, lv_area_t * area);
+void IRAM_ATTR composite_monitor_cb(lv_disp_drv_t *disp_drv, uint32_t time_ms, uint32_t px_num);
+bool get_video_switch(void) {
+    return g_dac_video_render;
+}
+void IRAM_ATTR video_composite_switch(bool flag) {
     g_dac_video_render = flag;
     if(g_dac_video_render) {
         // 注册A/V信号输出
@@ -64,6 +50,12 @@ void composite_switch(bool flag) {
     }
 	gpio_set_level(DAC_VIDEO_SWITCH, 0);
     graph_video_stop();
+}
+void video_composite_sync_switch(bool flag) {
+    g_dac_video_sync = flag;
+}
+void video_composite_sync_release(uint16_t times) {
+    sync_release_times = times;
 }
 void lv_port_disp_init(void)
 {
@@ -109,7 +101,7 @@ void lv_port_disp_init(void)
     /*Finally register the driver*/
     disp_drv_spi = &disp_drv;
     default_disp = lv_disp_drv_register(disp_drv_spi);
-    //composite_switch(true);
+    //video_composite_switch(true);
 }
 
 /**********************
@@ -126,15 +118,22 @@ static void disp_init(void)
  *You can use DMA or any hardware acceleration to do this operation in the background but
  *'lv_disp_flush_ready()' has to be called when finished.*/
 uint16_t videoframe_cnt = 0;
-static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p)
+static void IRAM_ATTR disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p)
 {
     /*The most simple case (but also the slowest) to put all pixels to the screen one-by-one*/
     //DAC flush
     if(g_dac_video_render) {
+        //加了以后画面更稳定, 但影响UI流畅度
+        if(g_dac_video_sync && !sync_release_times) {
+            graph_video_sync();
+        }
+        if(sync_release_times) {
+            --sync_release_times;
+        }
         lv_color_t *color_p_dac = color_p;
         for(int y = area->y1; y <= area->y2; ++y) {
             for(int x = area->x1; x <= area->x2; ++x) {
-                graph_video_set_color_8bit(x+50, y+70, 
+                graph_video_set_color_8bit(x+50, y+80, 
                     lv_color_to8(*color_p_dac));
                 ++color_p_dac;
             }
@@ -158,13 +157,9 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
     /*IMPORTANT!!!
      *Inform the graphics library that you are ready with the flushing*/
 	lv_disp_flush_ready(disp_drv);
-    if(g_dac_video_render) {
-        //加了以后画面更稳定, 但影响UI流畅度
-        graph_video_sync();
-    }
 }
 
-void composite_monitor_cb(lv_disp_drv_t * disp_drv, uint32_t time_ms, uint32_t px_num) {
+void IRAM_ATTR composite_monitor_cb(lv_disp_drv_t * disp_drv, uint32_t time_ms, uint32_t px_num) {
     // 每次切换OSD显示时, 都需要强制绘制屏幕
     if(refresh_times) {
         lv_obj_invalidate(lv_scr_act());
@@ -172,7 +167,7 @@ void composite_monitor_cb(lv_disp_drv_t * disp_drv, uint32_t time_ms, uint32_t p
     }
 
 }
-void composite_rounder_cb(lv_disp_drv_t * disp_drv, lv_area_t * area) {
+void IRAM_ATTR composite_rounder_cb(lv_disp_drv_t * disp_drv, lv_area_t * area) {
     // // RBG16bit的情况下，保证每次刷新的范围都32bit对齐
     // area->x1 &= ~1;
     // area->x2 |= 1;

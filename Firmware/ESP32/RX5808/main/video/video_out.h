@@ -14,8 +14,6 @@
 ** ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 ** SOFTWARE.
 */
-#define ESP_PLATFORM
-
 #define VIDEO_PIN   25
 #define AUDIO_PIN   18  // can be any pin
 #define IR_PIN      0   // TSOP4838 or equivalent on any pin if desired
@@ -24,13 +22,13 @@
 #define EMU_NES 2
 #define EMU_NES6 4
 #define EMU_SMS 3
+#define EMU_RGB_8BIT 3
 
 #define COMPOSITE_EVENT_FRAME_END_BIT (1<<0)
 #define COMPOSITE_EVENT_FRAME_VISIBLE_END_BIT (1<<1)
 #define COMPOSITE_EVENT_LINE_STARTS_BIT (1<<2)
 
 int _pal_ = 0;
-#ifdef ESP_PLATFORM
 #include "esp_types.h"
 #include "esp_heap_caps.h"
 #include "esp_attr.h"
@@ -196,7 +194,6 @@ void* MALLOC32(int x, const char* label)
         printf("MALLOC32 allocation of %s:%d %08X\n",label,x,(unsigned int)r);
     return r;
 }
-#endif
 
 //====================================================================================================
 //====================================================================================================
@@ -729,7 +726,6 @@ void IRAM_ATTR test_wave(volatile void* vbuf, int t = 1)
 
 // Wait for blanking before starting drawing
 // avoids tearing in our unsynchonized world
-#ifdef ESP_PLATFORM
 void video_sync()
 {
   if (!_lines)
@@ -744,7 +740,7 @@ void video_sync()
   }
   vTaskDelay(n+1);
 }
-void video_wait_frame(void)
+void IRAM_ATTR video_wait_frame(void)
 {
     if (!_lines)
         return;
@@ -758,17 +754,16 @@ void video_wait_frame(void)
             xTicksToWait); //max 100ms
 
 }
-#endif
 
 // Workhorse ISR handles audio and video updates
 extern "C"
 void IRAM_ATTR video_isr(volatile void* vbuf)
 {
+    static bool odd_frame = false;
     if (!_lines)
         return;
 
     ISR_BEGIN();
-
     int i = _line_counter++;
     uint16_t* buf = (uint16_t*)vbuf;
     if (_pal_) { 
@@ -778,14 +773,18 @@ void IRAM_ATTR video_isr(volatile void* vbuf)
         } else if (i < _active_lines + 32) {    // active video 32-272
             sync(buf,_hsync);
             burst(buf);
-            blit(_lines[i-32],buf + _active_start);
+            blit(_lines[i-32], buf + _active_start);
         } else if (i < 304) {                   // post render/black 272-304
             if (i < 272)                        // slight optimization here, once you have 2 blanking buffers
                 blanking(buf,false);
-            xEventGroupSetBits(g_video_event_group, COMPOSITE_EVENT_FRAME_VISIBLE_END_BIT);
+            if(odd_frame) {
+                xEventGroupSetBits(g_video_event_group, COMPOSITE_EVENT_FRAME_VISIBLE_END_BIT);
+            }
         } else {
             pal_sync(buf,i);                    // 8 lines of sync 304-312
-            xEventGroupSetBits(g_video_event_group, COMPOSITE_EVENT_FRAME_END_BIT);
+            if(odd_frame) {
+                xEventGroupSetBits(g_video_event_group, COMPOSITE_EVENT_FRAME_END_BIT);
+            }
         }
     } else {
         // ntsc
@@ -795,14 +794,20 @@ void IRAM_ATTR video_isr(volatile void* vbuf)
             blit(_lines[i],buf + _active_start);
 
         } else if (i < (_active_lines + 5)) {   // post render/black
-            xEventGroupSetBits(g_video_event_group, COMPOSITE_EVENT_FRAME_VISIBLE_END_BIT);
+            if(odd_frame) {
+                xEventGroupSetBits(g_video_event_group, COMPOSITE_EVENT_FRAME_VISIBLE_END_BIT);
+            }
             blanking(buf,false);
 
         } else if (i < (_active_lines + 8)) {   // vsync
-            xEventGroupSetBits(g_video_event_group, COMPOSITE_EVENT_FRAME_END_BIT);
+            if(odd_frame) {
+                xEventGroupSetBits(g_video_event_group, COMPOSITE_EVENT_FRAME_VISIBLE_END_BIT);
+            }
             blanking(buf,true);
-
         } else {                                // pre render/black
+            if(odd_frame) {
+                xEventGroupSetBits(g_video_event_group, COMPOSITE_EVENT_FRAME_END_BIT);
+            }
             blanking(buf,false);
         }
     }
@@ -810,6 +815,7 @@ void IRAM_ATTR video_isr(volatile void* vbuf)
     if (_line_counter == _line_count) {
         _line_counter = 0;                      // frame is done
         _frame_counter++;
+        odd_frame = _frame_counter%2;           // next frame
         xEventGroupClearBits( g_video_event_group,
             COMPOSITE_EVENT_FRAME_END_BIT |
             COMPOSITE_EVENT_FRAME_VISIBLE_END_BIT

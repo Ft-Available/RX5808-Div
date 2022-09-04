@@ -43,19 +43,17 @@ bool lock_flag = false;    //lock
 static void page_main_exit(void);
 static void page_main_group_create(void);
 static void fre_label_update(uint8_t a, uint8_t b);
-
 static void event_callback(lv_event_t* event)
 {
     lv_event_code_t code = lv_event_get_code(event);
-    if (code == LV_EVENT_KEY)
-    {
-        if (lock_flag == true)
-        {
+    if (code == LV_EVENT_KEY) {
+        if (lock_flag == true) {
             lv_key_t key_status = lv_indev_get_key(lv_indev_get_act());
             if (key_status >= LV_KEY_UP && key_status <= LV_KEY_LEFT) {
                 beep_on_off(1);
                 lv_fun_param_delayed(beep_on_off, 100, 0);
             }
+            video_composite_sync_release(40);// 临时取消帧同步，让画面看起来流畅点
             if (key_status == LV_KEY_LEFT) {
                 channel_count--;
                 if (channel_count < 0)
@@ -65,8 +63,7 @@ static void event_callback(lv_event_t* event)
                 rx5808_div_setup_upload();
                 fre_label_update(Chx_count, channel_count);
                 lv_label_set_text_fmt(lv_channel_label, "%c%d", Rx5808_ChxMap[Chx_count], channel_count + 1);
-            }
-            else if (key_status == LV_KEY_RIGHT) {
+            } else if (key_status == LV_KEY_RIGHT) {
                 channel_count++;
                 if (channel_count > 7)
                     channel_count = 0;
@@ -75,9 +72,7 @@ static void event_callback(lv_event_t* event)
                 rx5808_div_setup_upload();
                 fre_label_update(Chx_count, channel_count);
                 lv_label_set_text_fmt(lv_channel_label, "%c%d", Rx5808_ChxMap[Chx_count], channel_count + 1);
-
-            }
-            else if (key_status == LV_KEY_UP) {
+            } else if (key_status == LV_KEY_UP) {
                 Chx_count--;
                 if (Chx_count < 0)
                     Chx_count = 5;
@@ -86,8 +81,7 @@ static void event_callback(lv_event_t* event)
                 rx5808_div_setup_upload();
                 fre_label_update(Chx_count, channel_count);
                 lv_label_set_text_fmt(lv_channel_label, "%c%d", Rx5808_ChxMap[Chx_count], channel_count + 1);
-            }
-            else if (key_status == LV_KEY_DOWN) {
+            } else if (key_status == LV_KEY_DOWN) {
                 Chx_count++;
                 if (Chx_count > 5)
                     Chx_count = 0;
@@ -99,8 +93,10 @@ static void event_callback(lv_event_t* event)
             }
         }
     }
-    else if (code == LV_EVENT_SHORT_CLICKED)
-    {
+    else if (code == LV_EVENT_SHORT_CLICKED) {
+        if(get_video_switch()) {
+            video_composite_sync_release(90);// 临时取消帧同步，让画面看起来流畅点
+        }
         beep_on_off(1);
         lv_fun_param_delayed(beep_on_off, 100, 0);
         page_main_exit();
@@ -120,8 +116,9 @@ static void event_callback(lv_event_t* event)
             lv_obj_set_style_bg_color(lock_btn, lv_color_make(255, 0, 0), LV_STATE_DEFAULT);
             lock_flag = false;
         }
-        // 开启或关闭OSD
-        composite_switch(lock_flag);
+        // 开启或关闭OSD与帧同步
+        video_composite_switch(lock_flag);
+        video_composite_sync_switch(lock_flag);
     }
 }
 
