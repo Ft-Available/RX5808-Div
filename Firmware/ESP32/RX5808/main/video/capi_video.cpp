@@ -31,7 +31,12 @@ enum
 };
 const uint32_t* pal_palette();
 const uint32_t* ntsc_palette();
+static bool g_started = false;
 void graph_video_start(bool ntsc) {
+    if(g_started) {
+        return;
+    }
+    g_started = true;
     graph = bmp_create(XRES, YRES, 8);
     bmp_clear(graph, 0);
     _lines = graph->line;
@@ -44,6 +49,10 @@ void graph_video_start(bool ntsc) {
     }
 }
 void graph_video_stop() {
+    if(!g_started) {
+        return;
+    }
+    g_started = false;
     video_destroy();
     bmp_destroy(&graph);
     delete []palette_ram;
