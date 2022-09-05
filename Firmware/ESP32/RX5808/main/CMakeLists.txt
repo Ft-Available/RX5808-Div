@@ -32,8 +32,6 @@ file(GLOB_RECURSE SOURCES "./*.c"
     "./gui/lvgl_app/resources/*.c"
     "./gui/lvgl_driver/*.c"
     "./driver/*.c"
-    "./video/*.c"
-    "./video/*.cpp"
 )
 set(INCLUDE_DIRSx "./"
     "./hardware/"
@@ -71,7 +69,6 @@ set(INCLUDE_DIRSx "./"
     "./gui/lvgl_app/resources/"
     "./gui/lvgl_driver/"
     "./driver/"
-    "./video/"
 )
 
 set(SRCSx main.c)

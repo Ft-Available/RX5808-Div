@@ -43,13 +43,13 @@ void IRAM_ATTR video_composite_switch(bool flag) {
     g_dac_video_render = flag;
     if(g_dac_video_render) {
         // 注册A/V信号输出
-        graph_video_start(0);
+        esp32_video_start(0);
         refresh_times = 1;
 	    gpio_set_level(DAC_VIDEO_SWITCH, 1);
         return;
     }
 	gpio_set_level(DAC_VIDEO_SWITCH, 0);
-    graph_video_stop();
+    esp32_video_stop();
 }
 void video_composite_sync_switch(bool flag) {
     g_dac_video_sync = flag;
@@ -125,7 +125,7 @@ static void IRAM_ATTR disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * are
     if(g_dac_video_render) {
         //加了以后画面更稳定, 但影响UI流畅度
         if(g_dac_video_sync && !sync_release_times) {
-            graph_video_sync();
+            esp32_video_sync();
         }
         if(sync_release_times) {
             --sync_release_times;
@@ -133,7 +133,7 @@ static void IRAM_ATTR disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * are
         lv_color_t *color_p_dac = color_p;
         for(int y = area->y1; y <= area->y2; ++y) {
             for(int x = area->x1; x <= area->x2; ++x) {
-                graph_video_set_color_8bit(x+50, y+80, 
+                esp32_video_set_color(x+50, y+80, 
                     lv_color_to8(*color_p_dac));
                 ++color_p_dac;
             }
