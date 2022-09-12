@@ -26,7 +26,6 @@ lv_disp_drv_t *disp_drv_spi;
 lv_disp_t *default_disp = NULL;
 bool g_dac_video_render = false;
 bool g_dac_video_sync = false;
-uint16_t sync_release_times = 0;
 uint8_t refresh_times = 0;
 static void disp_init(void);
 
@@ -53,9 +52,6 @@ void IRAM_ATTR video_composite_switch(bool flag) {
 }
 void video_composite_sync_switch(bool flag) {
     g_dac_video_sync = flag;
-}
-void video_composite_sync_release(uint16_t times) {
-    sync_release_times = times;
 }
 void lv_port_disp_init(void)
 {
@@ -123,13 +119,6 @@ static void IRAM_ATTR disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * are
     /*The most simple case (but also the slowest) to put all pixels to the screen one-by-one*/
     //DAC flush
     if(g_dac_video_render) {
-        //加了以后画面更稳定, 但影响UI流畅度
-        if(g_dac_video_sync && !sync_release_times) {
-            esp32_video_sync();
-        }
-        if(sync_release_times) {
-            --sync_release_times;
-        }
         lv_color_t *color_p_dac = color_p;
         for(int y = area->y1; y <= area->y2; ++y) {
             for(int x = area->x1; x <= area->x2; ++x) {
@@ -165,7 +154,9 @@ void IRAM_ATTR composite_monitor_cb(lv_disp_drv_t * disp_drv, uint32_t time_ms, 
         lv_obj_invalidate(lv_scr_act());
         --refresh_times;
     }
-
+    if(g_dac_video_render && g_dac_video_sync) {
+            esp32_video_sync();
+    }
 }
 void IRAM_ATTR composite_rounder_cb(lv_disp_drv_t * disp_drv, lv_area_t * area) {
     // // RBG16bit的情况下，保证每次刷新的范围都32bit对齐

@@ -53,9 +53,6 @@ void Menu_event_callback(lv_event_t* event)
     if (code == LV_EVENT_KEY) {
         beep_on_off(1);
         lv_fun_param_delayed(beep_on_off, 100, 0);
-        if(get_video_switch()) {
-            video_composite_sync_release(30);// 临时取消帧同步，让画面看起来流畅点
-        }
         if (key_status == LV_KEY_ENTER) {
             if (obj == rx5808_div_menu[item_setup].item_contain) {
                 page_menu_exit();
@@ -71,9 +68,6 @@ void Menu_event_callback(lv_event_t* event)
             }
         }
         else if (key_status == LV_KEY_LEFT) {
-            if(get_video_switch()) {
-                video_composite_sync_release(160);// 临时取消帧同步，让画面看起来流畅点
-            }
             page_menu_exit();
             page_main_create();
         }

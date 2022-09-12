@@ -53,7 +53,6 @@ static void event_callback(lv_event_t* event)
                 beep_on_off(1);
                 lv_fun_param_delayed(beep_on_off, 100, 0);
             }
-            video_composite_sync_release(40);// 临时取消帧同步，让画面看起来流畅点
             if (key_status == LV_KEY_LEFT) {
                 channel_count--;
                 if (channel_count < 0)
@@ -94,9 +93,6 @@ static void event_callback(lv_event_t* event)
         }
     }
     else if (code == LV_EVENT_SHORT_CLICKED) {
-        if(get_video_switch()) {
-            video_composite_sync_release(90);// 临时取消帧同步，让画面看起来流畅点
-        }
         beep_on_off(1);
         lv_fun_param_delayed(beep_on_off, 100, 0);
         page_main_exit();

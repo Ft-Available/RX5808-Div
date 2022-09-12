@@ -33,7 +33,6 @@ void lv_port_disp_init(void);
 bool get_video_switch(void);
 void video_composite_switch(bool flag);
 void video_composite_sync_switch(bool flag);
-void video_composite_sync_release(uint16_t times);
 /**********************
  *      MACROS
  **********************/
