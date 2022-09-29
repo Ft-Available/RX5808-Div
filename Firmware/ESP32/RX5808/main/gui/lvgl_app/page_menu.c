@@ -4,6 +4,7 @@
 #include "page_scan.h"
 #include "page_main.h"
 #include "lvgl_stl.h"
+#include "lv_port_disp.h"
 #include "rx5808.h"
 #include "lcd.h"
 #include "beep.h"
@@ -49,11 +50,9 @@ void Menu_event_callback(lv_event_t* event)
     lv_event_code_t code = lv_event_get_code(event);
     lv_obj_t* obj = lv_event_get_target(event);
     lv_key_t key_status = lv_indev_get_key(lv_indev_get_act());
-    if (code == LV_EVENT_KEY)
-    {
+    if (code == LV_EVENT_KEY) {
         beep_on_off(1);
         lv_fun_param_delayed(beep_on_off, 100, 0);
-
         if (key_status == LV_KEY_ENTER) {
             if (obj == rx5808_div_menu[item_setup].item_contain) {
                 page_menu_exit();

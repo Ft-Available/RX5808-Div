@@ -344,32 +344,19 @@ static void keypad_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
 /*Get the currently being pressed key.  0 if no key is pressed*/
 static uint32_t keypad_get_key(void)
 {
-    /*Your code comes here*/
-	
-			//if(KEY_UP==0)
-			//	return LV_KEY_UP;
-			//if(gpio_get_level(9)==0)
-			//	return LV_KEY_DOWN;
-			//if(KEY_LEFT==0)
-			//	return LV_KEY_LEFT;
-			//if(KEY_RIGHT==0)
-			//	return LV_KEY_RIGHT;
-			//if(gpio_get_level(0)==0)
-			//	return LV_KEY_ENTER;
 
-            key_raw = adc1_get_raw(KEY_ADC_CHAN);
-            //printf("%d\n",key_raw);
-
-            if(key_raw>3100&&key_raw<3500)
-				return LV_KEY_UP;
-			if(key_raw<2800&&key_raw>2400)
-				return LV_KEY_DOWN;
-			if(key_raw<500)
-				return LV_KEY_LEFT;
-			if(key_raw<3100&&key_raw>2800)
-				return LV_KEY_RIGHT;
-			if(key_raw<2200&&key_raw>1750)
-				return LV_KEY_ENTER;
+    key_raw = adc1_get_raw(KEY_ADC_CHAN);
+    //printf("KEY_ADC_V: %d\n",key_raw);
+    if(key_raw>3100&&key_raw<3500)
+        return LV_KEY_UP;
+    if(key_raw<2800&&key_raw>2400)
+        return LV_KEY_DOWN;
+    if(key_raw<500)
+        return LV_KEY_LEFT;
+    if(key_raw<3100&&key_raw>2800)
+        return LV_KEY_RIGHT;
+    if(key_raw<2200&&key_raw>1750)
+        return LV_KEY_ENTER;
     return 0;
 }
 

@@ -1,0 +1,3 @@
+[submodule "Firmware/ESP32/RX5808/components/esp32-video"]
+	path = Firmware/ESP32/RX5808/components/esp32-video
+	url = https://github.com/ChisBread/esp32-video

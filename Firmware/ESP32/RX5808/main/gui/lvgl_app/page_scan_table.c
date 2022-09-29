@@ -165,7 +165,7 @@ static void page_scan_table_style_init()
     lv_style_set_text_font(&style_label, &lv_font_montserrat_16);
     lv_style_set_text_opa(&style_label, LV_OPA_COVER);
     lv_style_set_radius(&style_label, 4);
-    lv_style_set_border_color(&style_label, lv_color_make(0x40, 0x40, 0x40));
+    lv_style_set_border_color(&style_label, lock_flag?lv_color_black():lv_color_make(0x40, 0x40, 0x40));
     lv_style_set_border_opa(&style_label, LV_OPA_COVER);
 }
 

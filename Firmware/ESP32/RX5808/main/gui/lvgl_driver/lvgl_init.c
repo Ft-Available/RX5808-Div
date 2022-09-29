@@ -1,7 +1,6 @@
 #include "lvgl_init.h"
 #include "page_start.h"
 
-
 void lvgl_init()
 {
 	lv_init();
