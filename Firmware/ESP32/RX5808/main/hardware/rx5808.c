@@ -36,9 +36,8 @@ adc1_channel_t adc_dma_chan[]={RX5808_RSSI0_CHAN,RX5808_RSSI1_CHAN,VBAT_ADC_CHAN
 #define RX5808_SCLK       18
 #define RX5808_MOSI       23
 #define RX5808_CS         5
-#define RX5808_SWITCH0    4
-#define RX5808_SWITCH1    12
-
+// 彻底关断接收机
+bool RX5808_Shutdown = false;
 uint16_t adc_convert_temp0[32][3];
 uint16_t adc_convert_temp1[32][3];
 uint16_t adc_converted_value[3]={1024,1024,1024};
@@ -155,10 +154,18 @@ void RX5808_Init()
 			5,//任务优先级
 			NULL//任务句柄
 			);
-      
 }
 
-
+void RX5808_Pause() {
+	RX5808_Shutdown = true;
+	gpio_set_level(RX5808_SWITCH0, 0);
+	gpio_set_level(RX5808_SWITCH1, 0);
+}
+void RX5808_Resume() {
+	RX5808_Shutdown = false;
+	gpio_set_level(RX5808_SWITCH0, 1);
+	gpio_set_level(RX5808_SWITCH1, 0);
+}
 void Soft_SPI_Send_One_Bit(uint8_t bit)
 {
 	gpio_set_level(RX5808_SCLK, 0);
@@ -314,19 +321,21 @@ void DMA2_Stream0_IRQHandler(void)
 	adc_converted_value[1]=sum1>>4;	
 	adc_converted_value[2]=adc1_get_raw(VBAT_ADC_CHAN);		
 		
-	
-	if(Rx5808_Signal_Source==1)
-	{
+	int sig_src = Rx5808_Signal_Source;
+	// 关断则都为0
+	if(RX5808_Shutdown) {
+		sig_src = 3;
+	}
+	if(sig_src==1) {
 		gpio_set_level(RX5808_SWITCH1, 1);
 		gpio_set_level(RX5808_SWITCH0, 0);
 
 	}
-	else if(Rx5808_Signal_Source==2)
-	{
+	else if(sig_src==2) {
 		gpio_set_level(RX5808_SWITCH0, 1);
 		gpio_set_level(RX5808_SWITCH1, 0);
 	}
-	else if(Rx5808_Signal_Source==3) {
+	else if(sig_src==3) {
 		gpio_set_level(RX5808_SWITCH0, 0);
 		gpio_set_level(RX5808_SWITCH1, 0);
 	}
