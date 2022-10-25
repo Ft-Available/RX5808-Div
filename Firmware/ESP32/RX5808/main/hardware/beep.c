@@ -44,14 +44,15 @@ void PWM_Enable() {
 		};
 		// 初始化ledc的通道
 		ledc_channel_config(&ledc_channel);
-		// 设置占空比
-		// ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_TIMER_0, 4096);
-		// ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1);
 	} else {
+		// 设置占空比
+		ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_TIMER_0, 4096);
+		ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1);
 		ledc_timer_resume(LEDC_LOW_SPEED_MODE, LEDC_TIMER_0);
 	}
 }
 void PWM_Disable() {
+	ledc_stop(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1, 0);
 	ledc_timer_pause(LEDC_LOW_SPEED_MODE, LEDC_TIMER_0);
 }
 void Beep_Init()
