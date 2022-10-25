@@ -14,11 +14,16 @@
 #include "lcd.h"
 #include "capi_video.h"
 #include "driver/gpio.h"
+#include "hardware/rx5808.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 /*********************
  *      DEFINES
  *********************/
 #define DISP_BUF_SIZE        (MY_DISP_HOR_RES * MY_DISP_VER_RES)
-#define DAC_VIDEO_SWITCH     9
+#define DAC_VIDEO_SWITCH     19
+#define DAC_VIDEO_PIN     25
+
 lv_color_t lv_disp_buf1[DISP_BUF_SIZE];
 lv_color_t lv_disp_buf2[DISP_BUF_SIZE];
 //static lv_color_t lv_disp_buf3[240*140];
@@ -41,14 +46,19 @@ bool get_video_switch(void) {
 void IRAM_ATTR video_composite_switch(bool flag) {
     g_dac_video_render = flag;
     if(g_dac_video_render) {
+        // 暂停rx5808
+        RX5808_Pause();
         // 注册A/V信号输出
         esp32_video_start(0);
         refresh_times = 1;
-	    gpio_set_level(DAC_VIDEO_SWITCH, 1);
+	    gpio_set_level(DAC_VIDEO_SWITCH, 0);
         return;
     }
-	gpio_set_level(DAC_VIDEO_SWITCH, 0);
+	gpio_set_level(DAC_VIDEO_SWITCH, 1);
     esp32_video_stop();
+	gpio_reset_pin(DAC_VIDEO_PIN);
+    gpio_set_direction(DAC_VIDEO_PIN, GPIO_MODE_INPUT);/*  */
+    RX5808_Resume();
 }
 void video_composite_sync_switch(bool flag) {
     g_dac_video_sync = flag;
@@ -58,6 +68,9 @@ void lv_port_disp_init(void)
     /*-------------------------
      * Initialize your display
      * -----------------------*/
+	gpio_reset_pin(DAC_VIDEO_SWITCH);
+    gpio_set_direction(DAC_VIDEO_SWITCH, GPIO_MODE_OUTPUT);/*  */
+	gpio_set_level(DAC_VIDEO_SWITCH, 1);
     disp_init();
 
     /*-----------------------------
