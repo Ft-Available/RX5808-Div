@@ -4,7 +4,7 @@
 
 #include "driver/spi_master.h"
 #include "driver/gpio.h"
-
+#include "hardware/hwvers.h"
 
 #define SPI_HOST_USER    HSPI_HOST
 

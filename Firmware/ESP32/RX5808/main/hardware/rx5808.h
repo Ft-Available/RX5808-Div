@@ -2,7 +2,7 @@
 #define __RX5808_H
 
 #include <stdint.h>
-
+#include "hardware/hwvers.h"
 
 #define RX5808_SWITCH0    4
 #define RX5808_SWITCH1    12
