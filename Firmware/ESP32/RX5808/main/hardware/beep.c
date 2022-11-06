@@ -7,7 +7,6 @@
 #include <string.h>
 
 #define Beep_Pin_Num  22
-#define Beep_Is_Src 1
 uint8_t beep_en=1;  //off
 bool is_inited = false;
 void PWM_Enable() {
