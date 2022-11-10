@@ -269,7 +269,11 @@ void lv_port_indev_init(void)
 
 
 // //ADC Channels
+#ifndef D0WDQ6_VER
 #define KEY_ADC_CHAN          ADC1_CHANNEL_2
+#else
+#define KEY_ADC_CHAN          ADC1_CHANNEL_6
+#endif
 
 // //ADC Attenuation
 // #define ADC_EXAMPLE_ATTEN           ADC_ATTEN_DB_11

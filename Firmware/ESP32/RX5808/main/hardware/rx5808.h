@@ -2,8 +2,10 @@
 #define __RX5808_H
 
 #include <stdint.h>
+#include "hardware/hwvers.h"
 
-
+#define RX5808_SWITCH0    4
+#define RX5808_SWITCH1    12
 typedef enum
 {
      rx5808_receiver0=0,
@@ -16,9 +18,10 @@ extern const uint16_t Rx5808_Freq[6][8];
 extern volatile int8_t channel_count;
 extern volatile int8_t Chx_count;
 extern uint16_t adc_converted_value[3];
-
 void RX5808_RSSI_ADC_Init(void);
 void RX5808_Init(void);
+void RX5808_Pause(void);
+void RX5808_Resume(void);
 void Soft_SPI_Send_One_Bit(uint8_t bit);
 void Send_Register_Data(uint8_t addr, uint32_t data);
 void RX5808_Set_Freq(uint16_t Fre);
