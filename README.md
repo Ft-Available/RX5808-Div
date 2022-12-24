@@ -3,7 +3,7 @@
 
 演示视频见：https://www.bilibili.com/video/BV1yr4y1371b
 
-<img src="https:////image.lceda.cn/pullimage/7CHqqaR5k6D3Kc8axVDfuspKRjecOCti6RC0c4lx.jpeg" alt="img" style="zoom:67%;" />
+![](D:\RX5808-Div\RX5808-Div\Img\ui.jpeg)
 
 1)主界面长按确定键，可锁定/解锁手动频道,短按进入菜单；  解锁情况下，按上下左右可调整频率。
 
@@ -31,10 +31,8 @@ OSD功能由林面包（B站ID）添加，非叠加模式，主界面下解锁�
 
 演示视频见：[https://www.bilibili.com/video/BV1ya411g78U ](https://www.bilibili.com/video/BV1ya411g78U) 与接收机UI完全同步。
 
-<img src="https:////image.lceda.cn/pullimage/ZlwKIlzNsq11PN2MxrZjKxj3TY4kO4CN3IqKGdVB.jpeg" alt="img" style="zoom: 25%;" />
+<img src="D:\RX5808-Div\RX5808-Div\Img\osd.jpeg" style="zoom: 33%;" />
 
 ## 3.硬件设计
 
 硬件开源地址：https://oshwhub.com/ftps/rx5808-div
-
-<img src="C:\Users\FangTao\AppData\Roaming\Typora\typora-user-images\image-20221224185029449.png" alt="image-20221224185029449" style="zoom:50%;" /><img src="C:\Users\FangTao\AppData\Roaming\Typora\typora-user-images\image-20221224185048169.png" alt="image-20221224185048169" style="zoom:50%;" />
