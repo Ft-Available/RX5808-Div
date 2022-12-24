@@ -1,11 +1,13 @@
 #include "page_setup.h"
 #include "page_menu.h"
 #include "lcd.h"
+#include "fan.h"
 #include "beep.h"
 #include "page_start.h"
 #include "rx5808_config.h"
 #include "rx5808.h"
 #include "lvgl_stl.h"
+#include "lv_port_disp.h"
 
 LV_FONT_DECLARE(lv_font_chinese_12);
 
@@ -19,23 +21,29 @@ LV_FONT_DECLARE(lv_font_chinese_12);
 
 static lv_obj_t* menu_setup_contain = NULL;
 static lv_obj_t* back_light_label;
+static lv_obj_t* fan_speed_label;
 static lv_obj_t* boot_animation_label;
 static lv_obj_t* beep_label;
+static lv_obj_t* osd_format_label;
 static lv_obj_t* language_label;
 static lv_obj_t* signal_source_label;
 static lv_obj_t* exit_label;
 static lv_obj_t* back_light_bar;
+static lv_obj_t* fan_speed_bar;
 static lv_obj_t* boot_animation_switch;
 static lv_obj_t* beep_switch;
+static lv_obj_t* osd_format_setup_label;
 static lv_obj_t* language_setup_label;
 static lv_obj_t* signal_source_setup_label;
 
 const char language_label_text[][10] = { "English","中文" };
-const char signal_source_label_text[][10] = { "Auto","Recv1","Recv2","None" };
-const char signal_source_label_chinese_text[][12] = { "自动","接收机1","接收机2","None"};
+const char osd_format_label_text[][5] = { "PAL","NTSC" };
+const char signal_source_label_text[][6] = { "Auto","Recv1","Recv2","None" };
+const char signal_source_label_chinese_text[][12] = { "自动","接收机1","接收机2","关闭"};
 
 static uint32_t language_selid = 65532;
 static uint32_t signal_source_selid = 65532;
+static uint32_t osd_format_selid = 65532;
 
 static lv_group_t* setup_group;
 
@@ -43,6 +51,7 @@ static lv_style_t style_label;
 static lv_style_t style_setup_item;
 
 static uint8_t setup_back_light;
+static int8_t setup_fan_speed;
 static bool  boot_animation_state;
 static bool  beep_state;
 
@@ -50,22 +59,28 @@ static void page_setup_exit(void);
 static void page_setup_style_deinit(void);
 static void page_setup_set_language(uint16_t language);
 
-
 static void setup_event_callback(lv_event_t* event)
 {
     lv_event_code_t code = lv_event_get_code(event);
     lv_obj_t* obj = lv_event_get_target(event);
     if (code == LV_EVENT_KEY)
     {
-        beep_on_off(1);
-        lv_fun_param_delayed(beep_on_off, 100, 0);
+        //beep_on_off(1);
+        //lv_fun_param_delayed(beep_on_off, 100, 0);
+        beep_turn_on();
         lv_key_t key_status = lv_indev_get_key(lv_indev_get_act());
         if (key_status == LV_KEY_ENTER) {
             if (obj == exit_label) {
                 page_set_animation_en(lv_obj_has_state(boot_animation_switch, LV_STATE_CHECKED));
                 beep_set_enable_disable(lv_obj_has_state(beep_switch, LV_STATE_CHECKED));
-                LCD_SET_BLK(setup_back_light);
-                rx5808_div_setup_upload();
+                //LCD_SET_BLK(setup_back_light);
+                rx5808_div_setup_upload(rx5808_div_config_start_animation);
+                rx5808_div_setup_upload(rx5808_div_config_beep);
+                rx5808_div_setup_upload(rx5808_div_config_backlight);
+                rx5808_div_setup_upload(rx5808_div_config_fan_speed);
+                rx5808_div_setup_upload(rx5808_div_config_osd_format);
+                rx5808_div_setup_upload(rx5808_div_config_language_set);
+                rx5808_div_setup_upload(rx5808_div_config_signal_source);
                 page_setup_exit();
             }
             else if (obj == boot_animation_label)
@@ -92,6 +107,14 @@ static void setup_event_callback(lv_event_t* event)
                 LCD_SET_BLK(setup_back_light);
                 lv_bar_set_value(back_light_bar, setup_back_light, LV_ANIM_OFF);
             }
+            else if(obj == fan_speed_label)
+            {
+                setup_fan_speed-=5;
+                if (setup_fan_speed < 0)
+                    setup_fan_speed = 0;
+                fan_set_speed(setup_fan_speed);
+                lv_bar_set_value(fan_speed_bar, setup_fan_speed, LV_ANIM_OFF);
+            }
             else if (obj == boot_animation_label)
             {
                 lv_obj_clear_state(boot_animation_switch, LV_STATE_CHECKED);
@@ -100,13 +123,18 @@ static void setup_event_callback(lv_event_t* event)
             {
                 lv_obj_clear_state(beep_switch, LV_STATE_CHECKED);
             }
+            else if(obj == osd_format_label)
+            {
+                --osd_format_selid;
+                lv_label_set_text_fmt(osd_format_setup_label, (const char*)(&osd_format_label_text[osd_format_selid % 2]));
+                RX5808_Set_OSD_Format(osd_format_selid % 2);
+            }
             else if (obj == language_label)
             {
                 --language_selid;
                 lv_label_set_text_fmt(language_setup_label, (const char*)(&language_label_text[language_selid % 2]));
                 RX5808_Set_Language(language_selid % 2);
                 page_setup_set_language(language_selid % 2);
-
             }
             else if (obj == signal_source_label)
             {
@@ -130,6 +158,14 @@ static void setup_event_callback(lv_event_t* event)
                 LCD_SET_BLK(setup_back_light);
                 lv_bar_set_value(back_light_bar, setup_back_light, LV_ANIM_OFF);
             }
+             else if(obj == fan_speed_label)
+            {
+                setup_fan_speed+=5;
+                if (setup_fan_speed > 100)
+                    setup_fan_speed = 100;
+               fan_set_speed(setup_fan_speed);
+                lv_bar_set_value(fan_speed_bar, setup_fan_speed, LV_ANIM_OFF);
+            }
             else if (obj == boot_animation_label)
             {
                 lv_obj_add_state(boot_animation_switch, LV_STATE_CHECKED);
@@ -137,6 +173,12 @@ static void setup_event_callback(lv_event_t* event)
             else if (obj == beep_label)
             {
                 lv_obj_add_state(beep_switch, LV_STATE_CHECKED);
+            }
+            else if(obj == osd_format_label)
+            {
+                ++osd_format_selid;
+                lv_label_set_text_fmt(osd_format_setup_label, (const char*)(&osd_format_label_text[osd_format_selid % 2]));
+                RX5808_Set_OSD_Format(osd_format_selid % 2);
             }
             else if (obj == language_label)
             {
@@ -212,34 +254,44 @@ static void page_setup_set_language(uint16_t language)
     if (language == 0)
     {
         lv_obj_set_style_text_font(back_light_label, &lv_font_montserrat_12, LV_STATE_DEFAULT);
+        lv_obj_set_style_text_font(fan_speed_label, &lv_font_montserrat_12, LV_STATE_DEFAULT);
         lv_obj_set_style_text_font(boot_animation_label, &lv_font_montserrat_12, LV_STATE_DEFAULT);
         lv_obj_set_style_text_font(beep_label, &lv_font_montserrat_12, LV_STATE_DEFAULT);
+        lv_obj_set_style_text_font(osd_format_label, &lv_font_montserrat_12, LV_STATE_DEFAULT);
         lv_obj_set_style_text_font(language_label, &lv_font_montserrat_12, LV_STATE_DEFAULT);
         lv_obj_set_style_text_font(signal_source_label, &lv_font_montserrat_12, LV_STATE_DEFAULT);
         lv_obj_set_style_text_font(exit_label, &lv_font_montserrat_12, LV_STATE_DEFAULT);
         lv_label_set_text_fmt(back_light_label, "BackLight");
+        lv_label_set_text_fmt(fan_speed_label, "FanSpeed ");
         lv_label_set_text_fmt(boot_animation_label, "Boot Logo");
         lv_label_set_text_fmt(beep_label, "Beep");
+        lv_label_set_text_fmt(osd_format_label, "OSD Type");
         lv_label_set_text_fmt(language_label, "Language");
         lv_label_set_text_fmt(signal_source_label, "Signal");
         lv_label_set_text_fmt(exit_label, "Save&Exit");
+        lv_label_set_text_fmt(osd_format_setup_label, (const char*)(&osd_format_label_text[osd_format_selid % 2]));
         lv_label_set_text_fmt(language_setup_label, (const char*)(&language_label_text[language_selid % 2]));
         lv_label_set_text_fmt(signal_source_setup_label, (const char*)(&signal_source_label_text[signal_source_selid % 4]));
     }
     else
     {
         lv_obj_set_style_text_font(back_light_label, &lv_font_chinese_12, LV_STATE_DEFAULT);
+        lv_obj_set_style_text_font(fan_speed_label, &lv_font_chinese_12, LV_STATE_DEFAULT);
         lv_obj_set_style_text_font(boot_animation_label, &lv_font_chinese_12, LV_STATE_DEFAULT);
         lv_obj_set_style_text_font(beep_label, &lv_font_chinese_12, LV_STATE_DEFAULT);
+        lv_obj_set_style_text_font(osd_format_label, &lv_font_chinese_12, LV_STATE_DEFAULT);
         lv_obj_set_style_text_font(language_label, &lv_font_chinese_12, LV_STATE_DEFAULT);
         lv_obj_set_style_text_font(signal_source_label, &lv_font_chinese_12, LV_STATE_DEFAULT);
         lv_obj_set_style_text_font(exit_label, &lv_font_chinese_12, LV_STATE_DEFAULT);
         lv_label_set_text_fmt(back_light_label, "屏幕背光 ");
+        lv_label_set_text_fmt(fan_speed_label, "风扇转速 ");
         lv_label_set_text_fmt(boot_animation_label, "开机动画 ");
         lv_label_set_text_fmt(beep_label, "蜂鸣器 ");
+        lv_label_set_text_fmt(osd_format_label, "OSD制式");
         lv_label_set_text_fmt(language_label, "系统语言 ");
         lv_label_set_text_fmt(signal_source_label, "输出信号源 ");
         lv_label_set_text_fmt(exit_label, "保存并退出 ");
+        lv_label_set_text_fmt(osd_format_setup_label, (const char*)(&osd_format_label_text[osd_format_selid % 2]));
         lv_label_set_text_fmt(language_setup_label, (const char*)(&language_label_text[language_selid % 2]));
         lv_label_set_text_fmt(signal_source_setup_label, (const char*)(&signal_source_label_chinese_text[signal_source_selid % 4]));
     }
@@ -251,6 +303,7 @@ void page_setup_create()
 {
     language_selid = 65532 + RX5808_Get_Language();
     signal_source_selid = 65532 + RX5808_Get_Signal_Source();
+    osd_format_selid = 65532 + RX5808_Get_OSD_Format();
     page_setup_style_init();
 
     menu_setup_contain = lv_obj_create(lv_scr_act());
@@ -278,18 +331,35 @@ void page_setup_create()
     lv_bar_set_value(back_light_bar, setup_back_light, LV_ANIM_ON);
     lv_obj_set_style_anim_time(back_light_bar, 200, LV_STATE_DEFAULT);
 
+    fan_speed_label = lv_label_create(menu_setup_contain);
+    lv_obj_add_style(fan_speed_label, &style_label, LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(fan_speed_label, LABEL_FOCUSE_COLOR, LV_STATE_FOCUSED);
+    //lv_label_set_text_fmt(fan_speed_label, "BackLight");
+    lv_obj_set_pos(fan_speed_label, 0, 21);
+    lv_obj_set_size(fan_speed_label, 75, 20);
+    lv_label_set_long_mode(fan_speed_label, LV_LABEL_LONG_WRAP);
+
+    fan_speed_bar = lv_bar_create(menu_setup_contain);
+    lv_obj_remove_style(fan_speed_bar, NULL, LV_PART_KNOB);
+    lv_obj_set_size(fan_speed_bar, 50, 14);
+    lv_obj_set_style_bg_color(fan_speed_bar, BAR_COLOR, LV_PART_INDICATOR);
+    lv_obj_set_pos(fan_speed_bar, 110, 24);
+    setup_fan_speed = fan_get_speed();
+    lv_bar_set_value(fan_speed_bar, setup_fan_speed, LV_ANIM_ON);
+    lv_obj_set_style_anim_time(fan_speed_bar, 200, LV_STATE_DEFAULT);
+
     boot_animation_label = lv_label_create(menu_setup_contain);
     lv_obj_add_style(boot_animation_label, &style_label, LV_STATE_DEFAULT);
     lv_obj_set_style_bg_color(boot_animation_label, LABEL_FOCUSE_COLOR, LV_STATE_FOCUSED);
     //lv_label_set_text_fmt(boot_animation_label, "Boot Logo");
     lv_obj_set_size(boot_animation_label, 75, 20);
-    lv_obj_set_pos(boot_animation_label, 0, 21);
+    lv_obj_set_pos(boot_animation_label, 0, 40);
     lv_label_set_long_mode(boot_animation_label, LV_LABEL_LONG_WRAP);
 
     boot_animation_switch = lv_switch_create(menu_setup_contain);
     lv_obj_set_style_border_opa(boot_animation_switch, 0, LV_STATE_DEFAULT);
     lv_obj_set_size(boot_animation_switch, 50, 14);
-    lv_obj_set_pos(boot_animation_switch, 110, 24);
+    lv_obj_set_pos(boot_animation_switch, 110, 43);
     lv_obj_set_style_bg_color(boot_animation_switch, SWITCH_COLOR, LV_PART_INDICATOR | LV_STATE_CHECKED);
     boot_animation_state = page_get_animation_en();
     if (boot_animation_state == true)
@@ -301,27 +371,41 @@ void page_setup_create()
     lv_obj_add_style(beep_label, &style_label, LV_STATE_DEFAULT);
     lv_obj_set_style_bg_color(beep_label, LABEL_FOCUSE_COLOR, LV_STATE_FOCUSED);
     //lv_label_set_text_fmt(beep_label, "Beep");
-    lv_obj_set_pos(beep_label, 0, 40);
+    lv_obj_set_pos(beep_label, 0, 59);
     lv_obj_set_size(beep_label, 75, 20);
     lv_label_set_long_mode(beep_label, LV_LABEL_LONG_WRAP);
 
     beep_switch = lv_switch_create(menu_setup_contain);
     lv_obj_set_style_border_opa(beep_switch, 0, LV_STATE_DEFAULT);
     lv_obj_set_size(beep_switch, 50, 14);
-    lv_obj_set_pos(beep_switch, 110, 43);
+    lv_obj_set_pos(beep_switch, 110, 62);
     lv_obj_set_style_bg_color(beep_switch, SWITCH_COLOR, LV_PART_INDICATOR | LV_STATE_CHECKED);
     beep_state = beep_get_status();
     if (beep_state == true)
         lv_obj_add_state(beep_switch, LV_STATE_CHECKED);
     else
         lv_obj_clear_state(beep_switch, LV_STATE_CHECKED);
+    
 
+    osd_format_label = lv_label_create(menu_setup_contain);
+    lv_obj_add_style(osd_format_label, &style_label, LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(osd_format_label, LABEL_FOCUSE_COLOR, LV_STATE_FOCUSED);   
+    lv_obj_set_pos(osd_format_label, 0, 78);
+    lv_obj_set_size(osd_format_label, 75, 20);
+    lv_label_set_long_mode(osd_format_label, LV_LABEL_LONG_WRAP);
+
+    osd_format_setup_label = lv_label_create(menu_setup_contain);
+    lv_obj_add_style(osd_format_setup_label, &style_setup_item, LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(osd_format_setup_label, LABEL_FOCUSE_COLOR, LV_STATE_FOCUSED);
+    lv_obj_set_pos(osd_format_setup_label, 110, 78);
+    lv_obj_set_size(osd_format_setup_label, 50, 18);
+    lv_label_set_long_mode(osd_format_setup_label, LV_LABEL_LONG_WRAP);
 
     language_label = lv_label_create(menu_setup_contain);
     lv_obj_add_style(language_label, &style_label, LV_STATE_DEFAULT);
     lv_obj_set_style_bg_color(language_label, LABEL_FOCUSE_COLOR, LV_STATE_FOCUSED);
     //lv_label_set_text_fmt(language_label, "Language");
-    lv_obj_set_pos(language_label, 0, 59);
+    lv_obj_set_pos(language_label, 0, 97);
     lv_obj_set_size(language_label, 75, 20);
     lv_label_set_long_mode(language_label, LV_LABEL_LONG_WRAP);
 
@@ -330,7 +414,7 @@ void page_setup_create()
     lv_obj_add_style(language_setup_label, &style_setup_item, LV_STATE_DEFAULT);
     lv_obj_set_style_bg_color(language_setup_label, LABEL_FOCUSE_COLOR, LV_STATE_FOCUSED);
     //lv_label_set_text_fmt(language_setup_label, (const char*)(&language_label_text[language_selid % 2]));
-    lv_obj_set_pos(language_setup_label, 110, 59);
+    lv_obj_set_pos(language_setup_label, 110, 97);
     lv_obj_set_size(language_setup_label, 50, 18);
     lv_label_set_long_mode(language_setup_label, LV_LABEL_LONG_WRAP);
 
@@ -338,7 +422,7 @@ void page_setup_create()
     lv_obj_add_style(signal_source_label, &style_label, LV_STATE_DEFAULT);
     lv_obj_set_style_bg_color(signal_source_label, LABEL_FOCUSE_COLOR, LV_STATE_FOCUSED);
     //lv_label_set_text_fmt(signal_source_label, "Signal");
-    lv_obj_set_pos(signal_source_label, 0, 78);
+    lv_obj_set_pos(signal_source_label, 0, 116);
     lv_obj_set_size(signal_source_label, 75, 20);
     lv_label_set_long_mode(signal_source_label, LV_LABEL_LONG_WRAP);
 
@@ -346,7 +430,7 @@ void page_setup_create()
     lv_obj_add_style(signal_source_setup_label, &style_setup_item, LV_STATE_DEFAULT);
     lv_obj_set_style_bg_color(signal_source_setup_label, LABEL_FOCUSE_COLOR, LV_STATE_FOCUSED);
     //lv_label_set_text_fmt(signal_source_setup_label, (const char*)(&signal_source_label_text[signal_source_selid % 4]));
-    lv_obj_set_pos(signal_source_setup_label, 110, 78);
+    lv_obj_set_pos(signal_source_setup_label, 110, 116);
     lv_obj_set_size(signal_source_setup_label, 50, 18);
     lv_label_set_long_mode(signal_source_setup_label, LV_LABEL_LONG_WRAP);
 
@@ -354,7 +438,7 @@ void page_setup_create()
     lv_obj_add_style(exit_label, &style_label, LV_STATE_DEFAULT);
     lv_obj_set_style_bg_color(exit_label, LABEL_FOCUSE_COLOR, LV_STATE_FOCUSED);
     //lv_label_set_text_fmt(exit_label, "SAVE&EXIT");
-    lv_obj_set_pos(exit_label, 0, 97);
+    lv_obj_set_pos(exit_label, 0, 135);
     lv_obj_set_size(exit_label, 75, 20);
     lv_label_set_long_mode(exit_label, LV_LABEL_LONG_WRAP);
 
@@ -364,14 +448,18 @@ void page_setup_create()
     lv_indev_set_group(indev_keypad, setup_group);
     lv_obj_add_event_cb(boot_animation_label, setup_event_callback, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(back_light_label, setup_event_callback, LV_EVENT_KEY, NULL);
+    lv_obj_add_event_cb(fan_speed_label, setup_event_callback, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(beep_label, setup_event_callback, LV_EVENT_KEY, NULL);
+    lv_obj_add_event_cb(osd_format_label, setup_event_callback, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(language_label, setup_event_callback, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(signal_source_label, setup_event_callback, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(exit_label, setup_event_callback, LV_EVENT_KEY, NULL);
 
     lv_group_add_obj(setup_group, back_light_label);
+    lv_group_add_obj(setup_group, fan_speed_label);
     lv_group_add_obj(setup_group, boot_animation_label);
     lv_group_add_obj(setup_group, beep_label);
+    lv_group_add_obj(setup_group, osd_format_label);
     lv_group_add_obj(setup_group, language_label);
     lv_group_add_obj(setup_group, signal_source_label);
     lv_group_add_obj(setup_group, exit_label);
@@ -384,17 +472,21 @@ void page_setup_create()
 
 
     lv_amin_start(back_light_label, -100, 0, 1, 150, 0, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
-    lv_amin_start(boot_animation_label, -100, 0, 1, 150, 50, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
-    lv_amin_start(beep_label, -100, 0, 1, 150, 100, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
-    lv_amin_start(language_label, -100, 0, 1, 150, 150, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
-    lv_amin_start(signal_source_label, -100, 0, 1, 150, 200, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
-    lv_amin_start(exit_label, -100, 0, 1, 150, 250, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
+    lv_amin_start(fan_speed_label, -100, 0, 1, 150, 50, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
+    lv_amin_start(boot_animation_label, -100, 0, 1, 150, 100, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
+    lv_amin_start(beep_label, -100, 0, 1, 150, 150, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
+    lv_amin_start(osd_format_label, -100, 0, 1, 150, 200, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
+    lv_amin_start(language_label, -100, 0, 1, 150, 250, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
+    lv_amin_start(signal_source_label, -100, 0, 1, 150, 300, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
+    lv_amin_start(exit_label, -100, 0, 1, 150, 350, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
 
     lv_amin_start(back_light_bar, 160, 110, 1, 150, 0, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
-    lv_amin_start(boot_animation_switch, 160, 110, 1, 150, 50, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
-    lv_amin_start(beep_switch, 160, 110, 1, 150, 100, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
-    lv_amin_start(language_setup_label, 160, 110, 1, 150, 150, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
-    lv_amin_start(signal_source_setup_label, 160, 110, 1, 150, 200, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
+    lv_amin_start(fan_speed_bar, 160, 110, 1, 150, 50, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
+    lv_amin_start(boot_animation_switch, 160, 110, 1, 150, 100, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
+    lv_amin_start(beep_switch, 160, 110, 1, 150, 150, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
+    lv_amin_start(osd_format_setup_label, 160, 110, 1, 150, 200, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
+    lv_amin_start(language_setup_label, 160, 110, 1, 150, 250, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
+    lv_amin_start(signal_source_setup_label, 160, 110, 1, 150, 300, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
 
 }
 
@@ -402,17 +494,21 @@ void page_setup_create()
 static void page_setup_exit()
 {
     lv_amin_start(back_light_label, lv_obj_get_x(back_light_label), -100, 1, 200, 0, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_leave);
-    lv_amin_start(boot_animation_label, lv_obj_get_x(boot_animation_label), -100, 1, 200, 50, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_leave);
-    lv_amin_start(beep_label, lv_obj_get_x(beep_label), -100, 1, 200, 100, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_leave);
-    lv_amin_start(language_label, lv_obj_get_x(language_label), -100, 1, 200, 150, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_leave);
-    lv_amin_start(signal_source_label, lv_obj_get_x(signal_source_label), -100, 1, 200, 200, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
-    lv_amin_start(exit_label, lv_obj_get_x(exit_label), -100, 1, 200, 250, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
+    lv_amin_start(fan_speed_label, lv_obj_get_x(fan_speed_label), -100, 1, 200, 50, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_leave);
+    lv_amin_start(boot_animation_label, lv_obj_get_x(boot_animation_label), -100, 1, 200, 100, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_leave);
+    lv_amin_start(beep_label, lv_obj_get_x(beep_label), -100, 1, 200, 150, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_leave);
+    lv_amin_start(osd_format_label, lv_obj_get_x(osd_format_label), -100, 1, 200, 200, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_leave);
+    lv_amin_start(language_label, lv_obj_get_x(language_label), -100, 1, 200, 250, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_leave);
+    lv_amin_start(signal_source_label, lv_obj_get_x(signal_source_label), -100, 1, 200, 300, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
+    lv_amin_start(exit_label, lv_obj_get_x(exit_label), -100, 1, 200, 350, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
 
     lv_amin_start(back_light_bar, lv_obj_get_x(back_light_bar), 160, 1, 200, 0, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_leave);
+    lv_amin_start(fan_speed_bar, lv_obj_get_x(fan_speed_bar), 160, 1, 200, 50, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_leave);
     lv_amin_start(boot_animation_switch, lv_obj_get_x(boot_animation_switch), 160, 1, 200, 100, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_leave);
     lv_amin_start(beep_switch, lv_obj_get_x(beep_switch), 160, 1, 200, 150, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_leave);
-    lv_amin_start(language_setup_label, lv_obj_get_x(language_setup_label), 160, 1, 200, 200, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
-    lv_amin_start(signal_source_setup_label, lv_obj_get_x(signal_source_setup_label), 160, 1, 200, 250, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
+    lv_amin_start(osd_format_setup_label, lv_obj_get_x(osd_format_setup_label), 160, 1, 200, 200, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
+    lv_amin_start(language_setup_label, lv_obj_get_x(language_setup_label), 160, 1, 200, 250, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
+    lv_amin_start(signal_source_setup_label, lv_obj_get_x(signal_source_setup_label), 160, 1, 200, 300, (lv_anim_exec_xcb_t)lv_obj_set_x, page_setup_anim_enter);
 
     lv_fun_delayed(page_setup_style_deinit, 500);
     lv_group_del(setup_group);

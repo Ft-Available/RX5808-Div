@@ -27,7 +27,7 @@ void eeprom_24cxx_read_byte_len(uint16_t addr,uint8_t *databuf,uint16_t len)
 	}
     i2c_master_stop(cmd);
     esp_err_t ret = i2c_master_cmd_begin(i2c_port, cmd, 1000 / portTICK_RATE_MS);
-    ESP_ERROR_CHECK(ret);
+    //ESP_ERROR_CHECK(ret);
     i2c_cmd_link_delete(cmd);	
 } 
 void eeprom_24cxx_write_byte_len(uint16_t addr,uint8_t *databuf,uint16_t len)
@@ -43,7 +43,7 @@ void eeprom_24cxx_write_byte_len(uint16_t addr,uint8_t *databuf,uint16_t len)
 	}
     i2c_master_stop(cmd);
     esp_err_t ret = i2c_master_cmd_begin(i2c_port, cmd, 1000 / portTICK_RATE_MS);
-    ESP_ERROR_CHECK(ret);
+    //ESP_ERROR_CHECK(ret);
     i2c_cmd_link_delete(cmd);	
 }
 
@@ -63,7 +63,7 @@ void eeprom_24cxx_write_half_word_len(uint16_t addr,uint16_t *databuf,uint16_t l
 	}
     i2c_master_stop(cmd);
     esp_err_t ret = i2c_master_cmd_begin(i2c_port, cmd, 1000 / portTICK_RATE_MS);
-    ESP_ERROR_CHECK(ret);
+    //ESP_ERROR_CHECK(ret);
     i2c_cmd_link_delete(cmd);	
 }
 
@@ -87,7 +87,7 @@ void eeprom_24cxx_read_half_word_len(uint16_t addr,uint16_t *databuf,uint16_t le
 	}
     i2c_master_stop(cmd);
     esp_err_t ret = i2c_master_cmd_begin(i2c_port, cmd, 1000 / portTICK_RATE_MS);
-    ESP_ERROR_CHECK(ret);
+    //ESP_ERROR_CHECK(ret);
     i2c_cmd_link_delete(cmd);
 
 	for(int i=0;i<len;i++)
@@ -95,8 +95,6 @@ void eeprom_24cxx_read_half_word_len(uint16_t addr,uint16_t *databuf,uint16_t le
 		 databuf[i]=temp[2*i]<<8|temp[2*i+1];
 	}
 	free(temp);
-
-	printf("%d %d",databuf[0],databuf[1]);
 }
 
 

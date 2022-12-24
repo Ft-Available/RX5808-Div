@@ -49,9 +49,10 @@ static void event_callback(lv_event_t* event)
     if (code == LV_EVENT_KEY) {
         if (lock_flag == true) {
             lv_key_t key_status = lv_indev_get_key(lv_indev_get_act());
-            if (key_status >= LV_KEY_UP && key_status <= LV_KEY_LEFT) {
-                beep_on_off(1);
-                lv_fun_param_delayed(beep_on_off, 100, 0);
+            if ((key_status >= LV_KEY_UP && key_status <= LV_KEY_LEFT)) {
+                //beep_on_off(1);
+                //lv_fun_param_delayed(beep_on_off, 100, 0);
+                beep_turn_on();
             }
             if (key_status == LV_KEY_LEFT) {
                 channel_count--;
@@ -59,7 +60,7 @@ static void event_callback(lv_event_t* event)
                     channel_count = 7;
                 RX5808_Set_Freq(Rx5808_Freq[Chx_count][channel_count]);
                 Rx5808_Set_Channel(channel_count + Chx_count * 8);
-                rx5808_div_setup_upload();
+                rx5808_div_setup_upload(rx5808_div_config_channel);
                 fre_label_update(Chx_count, channel_count);
                 lv_label_set_text_fmt(lv_channel_label, "%c%d", Rx5808_ChxMap[Chx_count], channel_count + 1);
             } else if (key_status == LV_KEY_RIGHT) {
@@ -68,7 +69,7 @@ static void event_callback(lv_event_t* event)
                     channel_count = 0;
                 RX5808_Set_Freq(Rx5808_Freq[Chx_count][channel_count]);
                 Rx5808_Set_Channel(channel_count + Chx_count * 8);
-                rx5808_div_setup_upload();
+                rx5808_div_setup_upload(rx5808_div_config_channel);
                 fre_label_update(Chx_count, channel_count);
                 lv_label_set_text_fmt(lv_channel_label, "%c%d", Rx5808_ChxMap[Chx_count], channel_count + 1);
             } else if (key_status == LV_KEY_UP) {
@@ -77,7 +78,7 @@ static void event_callback(lv_event_t* event)
                     Chx_count = 5;
                 RX5808_Set_Freq(Rx5808_Freq[Chx_count][channel_count]);
                 Rx5808_Set_Channel(channel_count + Chx_count * 8);
-                rx5808_div_setup_upload();
+                rx5808_div_setup_upload(rx5808_div_config_channel);
                 fre_label_update(Chx_count, channel_count);
                 lv_label_set_text_fmt(lv_channel_label, "%c%d", Rx5808_ChxMap[Chx_count], channel_count + 1);
             } else if (key_status == LV_KEY_DOWN) {
@@ -86,22 +87,24 @@ static void event_callback(lv_event_t* event)
                     Chx_count = 0;
                 RX5808_Set_Freq(Rx5808_Freq[Chx_count][channel_count]);
                 Rx5808_Set_Channel(channel_count + Chx_count * 8);
-                rx5808_div_setup_upload();
+                rx5808_div_setup_upload(rx5808_div_config_channel);
                 fre_label_update(Chx_count, channel_count);
                 lv_label_set_text_fmt(lv_channel_label, "%c%d", Rx5808_ChxMap[Chx_count], channel_count + 1);
             }
         }
     }
     else if (code == LV_EVENT_SHORT_CLICKED) {
-        beep_on_off(1);
-        lv_fun_param_delayed(beep_on_off, 100, 0);
+        //beep_on_off(1);
+        //lv_fun_param_delayed(beep_on_off, 100, 0);
+        beep_turn_on();
         page_main_exit();
         lv_fun_param_delayed(page_menu_create, 500, 0);
     }
     else if (code == LV_EVENT_LONG_PRESSED)
     {
-        beep_on_off(1);
-        lv_fun_param_delayed(beep_on_off, 100, 0);
+         beep_turn_on();
+        //beep_on_off(1);
+        //lv_fun_param_delayed(beep_on_off, 100, 0);
         if (lock_flag == false)
         {
             lv_obj_set_style_bg_color(lock_btn, lv_color_make(160, 160, 160), LV_STATE_DEFAULT);
@@ -250,10 +253,10 @@ void page_main_rssi_quality_create(uint16_t type)
 
         lv_amin_start(lv_rsss0_label, 80, 50, 1, 800, 0, (lv_anim_exec_xcb_t)lv_obj_set_y, page_main_anim_enter);
         lv_amin_start(rssi_label0, 80, 50, 1, 800, 0, (lv_anim_exec_xcb_t)lv_obj_set_y, page_main_anim_enter);
-        lv_amin_start(rssi_bar0, 80, 50, 1, 800, 0, (lv_anim_exec_xcb_t)lv_obj_set_y, page_main_anim_enter);
+        lv_amin_start(rssi_bar0, 80, 51, 1, 800, 0, (lv_anim_exec_xcb_t)lv_obj_set_y, page_main_anim_enter);
         lv_amin_start(lv_rsss1_label, 95, 65, 1, 800, 200, (lv_anim_exec_xcb_t)lv_obj_set_y, page_main_anim_enter);
         lv_amin_start(rssi_label1, 95, 65, 1, 800, 200, (lv_anim_exec_xcb_t)lv_obj_set_y, page_main_anim_enter);
-        lv_amin_start(rssi_bar1, 95, 65, 1, 800, 200, (lv_anim_exec_xcb_t)lv_obj_set_y, page_main_anim_enter);
+        lv_amin_start(rssi_bar1, 95, 66, 1, 800, 200, (lv_anim_exec_xcb_t)lv_obj_set_y, page_main_anim_enter);
     }
     else
     {

@@ -57,8 +57,9 @@ static void page_scan_event_callback(lv_event_t* event)
     lv_obj_t* obj = lv_event_get_target(event);
     if (code == LV_EVENT_KEY)
     {
-        beep_on_off(1);
-        lv_fun_param_delayed(beep_on_off, 100, 0);
+        //beep_on_off(1);
+        //lv_fun_param_delayed(beep_on_off, 100, 0);
+        beep_turn_on();
         lv_key_t key_status = lv_indev_get_key(lv_indev_get_act());
         if (key_status == LV_KEY_LEFT) {
             page_scan_chart_exit();

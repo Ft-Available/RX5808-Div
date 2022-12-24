@@ -351,13 +351,13 @@ static uint32_t keypad_get_key(void)
 
     key_raw = adc1_get_raw(KEY_ADC_CHAN);
     //printf("KEY_ADC_V: %d\n",key_raw);
-    if(key_raw>3100&&key_raw<3500)
+    if(key_raw>3000&&key_raw<3500)
         return LV_KEY_UP;
     if(key_raw<2800&&key_raw>2400)
         return LV_KEY_DOWN;
     if(key_raw<500)
         return LV_KEY_LEFT;
-    if(key_raw<3100&&key_raw>2800)
+    if(key_raw<3000&&key_raw>2800)
         return LV_KEY_RIGHT;
     if(key_raw<2200&&key_raw>1750)
         return LV_KEY_ENTER;

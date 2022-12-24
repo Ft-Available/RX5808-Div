@@ -22,10 +22,10 @@ extern "C" {
     /**********************
     * GLOBAL PROTOTYPES
     **********************/
-extern uint8_t start_animation;
+extern volatile uint8_t start_animation;
 void page_start_create(void);
 void page_set_animation_en(uint8_t en);
-uint8_t page_get_animation_en(void);
+uint16_t page_get_animation_en(void);
     /**********************
     *      MACROS
     **********************/

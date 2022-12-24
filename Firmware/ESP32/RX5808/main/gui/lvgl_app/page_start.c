@@ -2,13 +2,13 @@
 #include "page_main.h"
 #include "lvgl_stl.h"
 
-//信号质量背光亮度开机动画蜂鸣器打关闭语言中文输出源保存并退出供电压界面版本源协议固件扫描中图传始校准成功失败启设置最大功率过小请重试屏幕系统自接收频谱道结果已安装天线，
+//信号质量背光亮度开机动画蜂鸣器打关闭语言中文输出源保存并退出供电压界面版本源协议固件扫描中图传始校准成功失败启设置最大功率过小请重试屏幕系统自接收频谱道结果已安装天线风扇转速制式，
 //接收机设置关于分集扫描中结束模拟 0x21,0x2d,0x2e
 
 LV_FONT_DECLARE(lv_font_start);
 
 lv_obj_t* page_start_contain;
-uint8_t start_animation = 1;
+volatile uint8_t start_animation = true;
 
 static void page_start_exit(void);
 
@@ -67,7 +67,7 @@ void page_set_animation_en(uint8_t en)
         start_animation = false;
 }
 
-uint8_t page_get_animation_en()
+uint16_t page_get_animation_en()
 {
     return start_animation;
 }

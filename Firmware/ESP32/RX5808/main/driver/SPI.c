@@ -4,10 +4,11 @@
 #include "freertos/task.h"
 #include "lv_port_disp.h"
 #include "../../lvgl.h"
+#include "hwvers.h"
 
 #define SPI_BAUDRATE_84MHZ  84*1000*1000
 #define SPI_BAUDRATE_80MHZ  80*1000*1000
-#define SPI_BAUDRATE_42MHZ  42*1000*1000
+#define SPI_BAUDRATE_40MHZ  40*1000*1000
 #define SPI_BAUDRATE_21MHZ  21*1000*1000
 #define SPI_BAUDRATE_12MHZ  12*1000*1000
 #define SPI_BAUDRATE_6MHZ   6*1000*1000
@@ -48,7 +49,7 @@ void spi_init()
 #ifndef SPI_LOW_SPEED
         .clock_speed_hz=SPI_BAUDRATE_80MHZ,     //Clock out at 10 MHz
 #else
-        .clock_speed_hz=SPI_BAUDRATE_42MHZ,     //Clock out at 10 MHz
+        .clock_speed_hz=SPI_BAUDRATE_40MHZ,     //Clock out at 10 MHz
 #endif
         .mode=0,                                //SPI mode 0
         .spics_io_num=SPI_NUM_CS,               //CS pin

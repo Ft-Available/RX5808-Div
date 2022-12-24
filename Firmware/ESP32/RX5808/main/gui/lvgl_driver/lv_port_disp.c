@@ -17,6 +17,7 @@
 #include "hardware/rx5808.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/semphr.h"
 /*********************
  *      DEFINES
  *********************/
@@ -35,6 +36,11 @@ uint8_t refresh_times = 0;
 static void disp_init(void);
 
 static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p);
+
+//static SemaphoreHandle_t osd_ready_semap;
+
+
+void esp32_video(void *param);
 /**********************
  *   GLOBAL FUNCTIONS
  **********************/
@@ -49,7 +55,7 @@ void IRAM_ATTR video_composite_switch(bool flag) {
         // 暂停rx5808
         RX5808_Pause();
         // 注册A/V信号输出
-        esp32_video_start(0);
+        esp32_video_start((bool)RX5808_Get_OSD_Format());
         refresh_times = 1;
 	    gpio_set_level(DAC_VIDEO_SWITCH, 0);
         return;
@@ -60,6 +66,7 @@ void IRAM_ATTR video_composite_switch(bool flag) {
     gpio_set_direction(DAC_VIDEO_PIN, GPIO_MODE_INPUT);/*  */
     RX5808_Resume();
 }
+
 void video_composite_sync_switch(bool flag) {
     g_dac_video_sync = flag;
 }
@@ -111,6 +118,19 @@ void lv_port_disp_init(void)
     disp_drv_spi = &disp_drv;
     default_disp = lv_disp_drv_register(disp_drv_spi);
     //video_composite_switch(true);
+
+    //  osd_ready_semap=xSemaphoreCreateBinary();
+	// 	if( osd_ready_semap == NULL ) { 
+    //         assert(false);
+    //         return;
+    //     }
+	// 	xTaskCreatePinnedToCore( (TaskFunction_t)esp32_video,
+	//                           "esp32_video", 
+	// 						  1024, 
+	// 						  NULL,
+	// 						   3,
+	// 						    NULL, 
+	// 							1);
 }
 
 /**********************
@@ -135,7 +155,7 @@ static void IRAM_ATTR disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * are
         lv_color_t *color_p_dac = color_p;
         for(int y = area->y1; y <= area->y2; ++y) {
             for(int x = area->x1; x <= area->x2; ++x) {
-                esp32_video_set_color(x+50, y+80, 
+                esp32_video_set_color(x, y, 
                     lv_color_to8(*color_p_dac));
                 ++color_p_dac;
             }
@@ -150,7 +170,7 @@ static void IRAM_ATTR disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * are
     Address_Set(area->x1,area->y1,area->x2,area->y2);    
     memset(&t, 0, sizeof(t));       //Zero out the transaction
     t.length=width*height*16;       //Command is 8 bits
-    t.user=(void*)1;                //D/C needs to be set to 0
+    //t.user=(void*)1;                //D/C needs to be set to 0
 	t.tx_buffer=color_p;
     gpio_set_level(PIN_NUM_DC, 1);
  
@@ -161,6 +181,14 @@ static void IRAM_ATTR disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * are
 	lv_disp_flush_ready(disp_drv);
 }
 
+// void esp32_video(void *param)
+// {
+//   while(1)
+//   {
+//      xSemaphoreTake(osd_ready_semap,portMAX_DELAY);
+//      esp32_video_sync();
+//   }
+// }
 void IRAM_ATTR composite_monitor_cb(lv_disp_drv_t * disp_drv, uint32_t time_ms, uint32_t px_num) {
     // 每次切换OSD显示时, 都需要强制绘制屏幕
     if(refresh_times) {
@@ -169,6 +197,7 @@ void IRAM_ATTR composite_monitor_cb(lv_disp_drv_t * disp_drv, uint32_t time_ms, 
     }
     if(g_dac_video_render && g_dac_video_sync) {
             esp32_video_sync();
+            //xSemaphoreGive(osd_ready_semap); 
     }
 }
 void IRAM_ATTR composite_rounder_cb(lv_disp_drv_t * disp_drv, lv_area_t * area) {

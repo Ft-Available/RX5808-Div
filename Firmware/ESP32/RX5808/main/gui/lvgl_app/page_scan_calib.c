@@ -62,23 +62,27 @@ static void page_scan_calib_timer_event(lv_timer_t* tmr)
             lv_obj_set_style_opa(rssi_min_label, (lv_opa_t)LV_OPA_0, LV_STATE_DEFAULT);
             lv_obj_set_style_opa(rssi_max_label, (lv_opa_t)LV_OPA_0, LV_STATE_DEFAULT);
             lv_obj_set_style_border_color(calib_result_cont, lv_color_make(255, 0, 0), LV_STATE_DEFAULT);
-            int rssi_adc_min = 0, rssi_adc_max = 0;
+            bool calib_flag=false;
             if (RX5808_Get_Signal_Source() == 0)
             {
-                rssi_adc_min = rssi_adc_min0+ rssi_adc_min1;
-                rssi_adc_max = rssi_adc_max0+ rssi_adc_max1;
+                //rssi_adc_min = rssi_adc_min0+ rssi_adc_min1;
+                //rssi_adc_max = rssi_adc_max0+ rssi_adc_max1;
+                calib_flag=RX5808_Calib_RSSI(rssi_adc_min0, rssi_adc_max0,rssi_adc_min1,rssi_adc_max1);
             }
             else if (RX5808_Get_Signal_Source() == 1)
             {
-                rssi_adc_min = rssi_adc_min1;
-                rssi_adc_max = rssi_adc_max1;
+                //rssi_adc_min = rssi_adc_min1;
+                //rssi_adc_max = rssi_adc_max1;
+                calib_flag=RX5808_Calib_RSSI(0, 4095,rssi_adc_min1,rssi_adc_max1);
             }
             else
             {
-                rssi_adc_min =rssi_adc_min0;
-                rssi_adc_max =rssi_adc_max0;
+                //rssi_adc_min =rssi_adc_min0;
+                //rssi_adc_max =rssi_adc_max0;
+                calib_flag=RX5808_Calib_RSSI(rssi_adc_min0, rssi_adc_max0,0,4095);
+
             }
-            if (rssi_adc_min + 200 < rssi_adc_max)
+            if (calib_flag)
             {
                 if (RX5808_Get_Language() == 0)
                 {
@@ -96,7 +100,10 @@ static void page_scan_calib_timer_event(lv_timer_t* tmr)
                 RX5808_Set_RSSI_Ad_Max0(rssi_adc_max0);
                 RX5808_Set_RSSI_Ad_Min1(rssi_adc_min1);
                 RX5808_Set_RSSI_Ad_Max1(rssi_adc_max1);
-                rx5808_div_setup_upload();
+                rx5808_div_setup_upload(rx5808_div_config_rssi_adc_value_min0);
+                rx5808_div_setup_upload(rx5808_div_config_rssi_adc_value_max0);
+                rx5808_div_setup_upload(rx5808_div_config_rssi_adc_value_min1);
+                rx5808_div_setup_upload(rx5808_div_config_rssi_adc_value_max1);
             }
             else
             {
@@ -129,8 +136,9 @@ static void page_scan_calib_event(lv_event_t* event)
     lv_obj_t* obj = lv_event_get_target(event);
     if (code == LV_EVENT_KEY)
     {
-        beep_on_off(1);
-        lv_fun_param_delayed(beep_on_off, 100, 0);
+        //beep_on_off(1);
+        //lv_fun_param_delayed(beep_on_off, 100, 0);
+        beep_turn_on();
         lv_key_t key_status = lv_indev_get_key(lv_indev_get_act());
         if (key_status == LV_KEY_ENTER) {
             if (obj == open_vtx_label)

@@ -3,7 +3,7 @@
 #include "rx5808.h"
 #include "lvgl_stl.h"
 #include "beep.h"
-
+#include "hwvers.h"
 
 LV_FONT_DECLARE(lv_font_chinese_16);
 LV_FONT_DECLARE(lv_font_chinese_12);
@@ -37,8 +37,9 @@ static void event_callback(lv_event_t* event)
     lv_event_code_t code = lv_event_get_code(event);
     if (code == LV_EVENT_KEY)
     {
-        beep_on_off(1);
-        lv_fun_param_delayed(beep_on_off, 100, 0);
+        //beep_on_off(1);
+        //lv_fun_param_delayed(beep_on_off, 100, 0);
+        beep_turn_on();
         lv_key_t key_status = lv_indev_get_key(lv_indev_get_act());
         if (key_status == LV_KEY_ENTER) {
            
@@ -71,11 +72,11 @@ static void vbat_label_update(lv_timer_t* tmr)
 {
     if (RX5808_Get_Language() == 0)
     {
-        lv_label_set_text_fmt(vbat_label, "VCC_BAT:%.3fV", Get_Battery_Voltage());
+        lv_label_set_text_fmt(vbat_label, "VCC_BAT:%.4fV", Get_Battery_Voltage());
     }
     else
     {
-        lv_label_set_text_fmt(vbat_label, "供电电压:%.3fV", Get_Battery_Voltage());
+        lv_label_set_text_fmt(vbat_label, "供电电压:%.4fV", Get_Battery_Voltage());
     }
 }
 
@@ -157,8 +158,8 @@ void page_about_create()
         lv_obj_set_style_text_font(version_label, &lv_font_montserrat_12, LV_STATE_DEFAULT);
         lv_obj_set_style_text_font(base_label, &lv_font_montserrat_12, LV_STATE_DEFAULT);
         lv_obj_set_style_text_font(protocol_label, &lv_font_montserrat_12, LV_STATE_DEFAULT);
-        lv_label_set_text_fmt(vbat_label, "VCC_BAT:%.3fV", Get_Battery_Voltage());
-        lv_label_set_text_fmt(version_label, "VERSION:1.1.0");
+        lv_label_set_text_fmt(vbat_label, "VCC_BAT:%.4fV", Get_Battery_Voltage());
+        lv_label_set_text_fmt(version_label, "VERSION:v%d.%d.%d",RX5808_VERSION_MAJOR, RX5808_VERSION_MINOR, RX5808_VERSION_PATCH);
         lv_label_set_text_fmt(base_label, "LVGL:v%d.%d.%d", LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH);
         lv_label_set_text_fmt(protocol_label, "LICENSE:GPL3.0");
     }
@@ -170,9 +171,9 @@ void page_about_create()
         lv_obj_set_style_text_font(version_label, &lv_font_chinese_12, LV_STATE_DEFAULT);
         lv_obj_set_style_text_font(base_label, &lv_font_chinese_12, LV_STATE_DEFAULT);
         lv_obj_set_style_text_font(protocol_label, &lv_font_chinese_12, LV_STATE_DEFAULT);
-        lv_label_set_text_fmt(vbat_label, "供电电压:%.3fV", Get_Battery_Voltage());
-        lv_label_set_text_fmt(version_label, "固件版本:1.1.0");
-        lv_label_set_text_fmt(base_label, "界面版本:v%d.%d.%d", LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH);
+        lv_label_set_text_fmt(vbat_label, "供电电压:%.4fV", Get_Battery_Voltage());
+        lv_label_set_text_fmt(version_label, "固件版本:v%d.%d.%d",RX5808_VERSION_MAJOR, RX5808_VERSION_MINOR, RX5808_VERSION_PATCH);
+        lv_label_set_text_fmt(base_label, "LVGL:v%d.%d.%d", LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH);
         lv_label_set_text_fmt(protocol_label, "开源协议:GPL3.0");
     }
 

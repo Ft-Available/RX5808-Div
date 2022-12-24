@@ -39,20 +39,21 @@ static void page_menu_style_deinit(void);
 static void menu_item_label_update(void);
 static void page_menu_item_create(lv_obj_t* parent, menu_item* item, uint8_t i);
 
-static const char icon_txt_array[menu_item_count][10] = { "Scan","Setup","About" };
+static const char icon_txt_array[menu_item_count][10] = { "Receiver","Setup","About" };
 static const char icon_txt_array_chinese[menu_item_count][12] = { "接收机 ","设置 ","关于 " };
 static const lv_img_dsc_t* icon_imagine[menu_item_count] = { &menu_rx_icon,&menu_setup_icon,&menu_about_icon };
 
-
-
+extern const char signal_source_label_text[][10];
+extern const char signal_source_label_chinese_text[][12];
 void Menu_event_callback(lv_event_t* event)
 {
     lv_event_code_t code = lv_event_get_code(event);
     lv_obj_t* obj = lv_event_get_target(event);
     lv_key_t key_status = lv_indev_get_key(lv_indev_get_act());
     if (code == LV_EVENT_KEY) {
-        beep_on_off(1);
-        lv_fun_param_delayed(beep_on_off, 100, 0);
+        //beep_on_off(1);
+        //lv_fun_param_delayed(beep_on_off, 100, 0);
+        beep_turn_on();
         if (key_status == LV_KEY_ENTER) {
             if (obj == rx5808_div_menu[item_setup].item_contain) {
                 page_menu_exit();
@@ -190,7 +191,7 @@ static void menu_item_label_update()
             case item_scan:  lv_label_set_text_fmt(rx5808_div_menu[i].item_label0, "RSSI1: %d%%", (int)Rx5808_Get_Precentage1());
                 lv_label_set_text_fmt(rx5808_div_menu[i].item_label1, "RSSI2: %d%%", (int)Rx5808_Get_Precentage0()); break;
                 //case item_setup: lv_label_set_text_fmt(rx5808_div_menu[i].item_label0, "Light:%d%%", LCD_GET_BLK()); break;
-            case item_about: lv_label_set_text_fmt(rx5808_div_menu[i].item_label0, "Battery:%.2fV", Get_Battery_Voltage()); break;
+            case item_about: lv_label_set_text_fmt(rx5808_div_menu[i].item_label0, "Battery:%.3fV", Get_Battery_Voltage()); break;
             default:break;
             }
         }
@@ -200,7 +201,7 @@ static void menu_item_label_update()
             {
             case item_scan:  lv_label_set_text_fmt(rx5808_div_menu[i].item_label0, "信号1:%d%%", (int)Rx5808_Get_Precentage1());
                 lv_label_set_text_fmt(rx5808_div_menu[i].item_label1, "信号2:%d%%", (int)Rx5808_Get_Precentage0()); break;
-            case item_about: lv_label_set_text_fmt(rx5808_div_menu[i].item_label0, "电压:%.2fV", Get_Battery_Voltage()); break;
+            case item_about: lv_label_set_text_fmt(rx5808_div_menu[i].item_label0, "电压:%.3fV", Get_Battery_Voltage()); break;
             default:break;
             }
         }
@@ -247,9 +248,11 @@ static void page_menu_item_create(lv_obj_t* parent, menu_item* item, uint8_t i)
         case item_scan:  lv_label_set_text_fmt(item->item_label0, "RSSI1: %d%%", (int)Rx5808_Get_Precentage1());
             lv_label_set_text_fmt(item->item_label1, "RSSI2: %d%%", (int)Rx5808_Get_Precentage0()); break;
         case item_setup: lv_label_set_text_fmt(item->item_label0, "BLCK:%d%%", LCD_GET_BLK());
-            lv_label_set_text_fmt(item->item_label1, beep_get_status() ? "BEEP:Open" : "BEEP:Close"); break;
-        case item_about: lv_label_set_text_fmt(item->item_label0, "Battery:%.2fV", Get_Battery_Voltage());
-            lv_label_set_text_fmt(item->item_label1, "LVGL:v%d.%d.%d", LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH); break;
+            //lv_label_set_text_fmt(item->item_label1, beep_get_status() ? "BEEP:Open" : "BEEP:Close"); break;
+            lv_label_set_text_fmt(item->item_label1, "Signal:%s",signal_source_label_text[RX5808_Get_Signal_Source()%4]); break;
+        case item_about: lv_label_set_text_fmt(item->item_label0, "Battery:%.3fV", Get_Battery_Voltage());
+            //lv_label_set_text_fmt(item->item_label1, "LVGL:v%d.%d.%d", LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH); break;
+            lv_label_set_text_fmt(item->item_label1, "Version:v%d.%d.%d",RX5808_VERSION_MAJOR, RX5808_VERSION_MINOR, RX5808_VERSION_PATCH);break;
         default:break;
         }
     }
@@ -264,9 +267,11 @@ static void page_menu_item_create(lv_obj_t* parent, menu_item* item, uint8_t i)
         case item_scan:  lv_label_set_text_fmt(item->item_label0, "信号1:%d%%", (int)Rx5808_Get_Precentage1());
             lv_label_set_text_fmt(item->item_label1, "信号2:%d%%", (int)Rx5808_Get_Precentage0()); break;
         case item_setup: lv_label_set_text_fmt(item->item_label0, "背光:%d%%", LCD_GET_BLK());
-            lv_label_set_text_fmt(item->item_label1, beep_get_status() ? "蜂鸣器:打开" : "蜂鸣器:关闭"); break;
-        case item_about: lv_label_set_text_fmt(item->item_label0, "电压:%.2fV", Get_Battery_Voltage());
-            lv_label_set_text_fmt(item->item_label1, "界面:v%d.%d.%d", LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH); break;
+            //lv_label_set_text_fmt(item->item_label1, beep_get_status() ? "蜂鸣器:打开" : "蜂鸣器:关闭"); break;
+            lv_label_set_text_fmt(item->item_label1, "信号源:%s",signal_source_label_chinese_text[RX5808_Get_Signal_Source()%4]); break;
+        case item_about: lv_label_set_text_fmt(item->item_label0, "电压:%.3fV", Get_Battery_Voltage());
+            //lv_label_set_text_fmt(item->item_label1, "LVGL:v%d.%d.%d", LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH); break;
+            lv_label_set_text_fmt(item->item_label1, "版本:v%d.%d.%d",RX5808_VERSION_MAJOR, RX5808_VERSION_MINOR, RX5808_VERSION_PATCH);break;
         default:break;
         }
     }

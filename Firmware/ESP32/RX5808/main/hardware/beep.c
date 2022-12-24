@@ -4,11 +4,27 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/ledc.h"
+#include "freertos/semphr.h"
 #include <string.h>
+#include "hwvers.h"
 
-#define Beep_Pin_Num  22
-uint8_t beep_en=1;  //off
+volatile uint8_t beep_en=1;  //off
 bool is_inited = false;
+static SemaphoreHandle_t beep_semap;
+
+
+void beep_task(void *param)
+{
+	while(1)
+	{
+		xSemaphoreTake(beep_semap,portMAX_DELAY);
+		beep_on_off(1);
+		vTaskDelay(100 / portTICK_PERIOD_MS);
+		beep_on_off(0);
+	}
+}
+
+
 void PWM_Enable() {
 	if(!is_inited) {
 		is_inited = true;
@@ -54,24 +70,41 @@ void PWM_Disable() {
 	ledc_stop(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1, 0);
 	ledc_timer_pause(LEDC_LOW_SPEED_MODE, LEDC_TIMER_0);
 }
+
 void Beep_Init()
 {
+	
 #if Beep_Is_Src == 1
     	gpio_set_direction(Beep_Pin_Num, GPIO_MODE_OUTPUT);
 #endif
-	if(beep_en==1) {
-#if Beep_Is_Src == 1
-		gpio_set_level(Beep_Pin_Num, 1);
-#else
-		PWM_Enable();
-#endif
-		vTaskDelay(200 / portTICK_PERIOD_MS);
-#if Beep_Is_Src == 1
-		gpio_set_level(Beep_Pin_Num, 0);
-#else
-		PWM_Disable();
-#endif
- 	}
+// 	if(beep_en==1) {
+// #if Beep_Is_Src == 1
+// 		gpio_set_level(Beep_Pin_Num, 1);
+// #else
+// 		PWM_Enable();
+// #endif
+// 		//vTaskDelay(200 / portTICK_PERIOD_MS);
+// #if Beep_Is_Src == 1
+// 		gpio_set_level(Beep_Pin_Num, 0);
+// #else
+// 		PWM_Disable();
+// #endif
+//  	}
+	beep_semap=xSemaphoreCreateCounting(3,0);
+	if( beep_semap == NULL ) { 
+            assert(false);
+            return;
+    }
+	xTaskCreatePinnedToCore((TaskFunction_t)beep_task,
+			"beep_task",
+			768,
+			NULL,
+			1,
+			NULL,
+			1);
+	beep_turn_on();
+ 
+  
 }
 
 void beep_set_enable_disable(uint8_t en)
@@ -85,7 +118,7 @@ void beep_set_enable_disable(uint8_t en)
 }
 
 
-uint8_t beep_get_status()
+uint16_t beep_get_status()
 {
    return beep_en;
 }
@@ -94,7 +127,7 @@ void beep_on_off(uint8_t on_off)
 {
 	//if(beep_en==0)
 	//	return ;
-	if(on_off&&beep_en){
+	if(on_off){
 #if Beep_Is_Src == 1
 		gpio_set_level(Beep_Pin_Num, 1);
 #else
@@ -109,6 +142,14 @@ void beep_on_off(uint8_t on_off)
 	}
 }
 
+void beep_turn_on(void)
+{
+	if(beep_en==1)
+	{
+		xSemaphoreGive(beep_semap);
+	}
+}
+
 
 void beep_set_tone(uint16_t tone)
 {
@@ -117,5 +158,7 @@ void beep_set_tone(uint16_t tone)
 //   TIM4->PSC=(uint16_t)psc-1;
 // 	#endif
 }
+
+
 
 

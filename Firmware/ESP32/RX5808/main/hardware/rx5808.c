@@ -7,8 +7,8 @@
 #include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "hwvers.h"
 
-#define RX5808_TOGGLE_DEAD_ZONE 1
 
 #define Synthesizer_Register_A 				              0x00  
 #define Synthesizer_Register_B 				              0x01  
@@ -24,27 +24,13 @@
 #define State_Register                              0x0F  
 
 
-#define RX5808_RSSI0_CHAN  ADC1_CHANNEL_0
-#define RX5808_RSSI1_CHAN  ADC1_CHANNEL_3
-#ifndef D0WDQ6_VER
-#define VBAT_ADC_CHAN      ADC1_CHANNEL_1
-#define KEY_ADC_CHAN       ADC1_CHANNEL_2
-#else
-#define VBAT_ADC_CHAN      ADC1_CHANNEL_7
-#define KEY_ADC_CHAN       ADC1_CHANNEL_6
-#endif
 
+//adc1_channel_t adc_dma_chan[]={RX5808_RSSI0_CHAN,RX5808_RSSI1_CHAN,VBAT_ADC_CHAN,KEY_ADC_CHAN};
 
-adc1_channel_t adc_dma_chan[]={RX5808_RSSI0_CHAN,RX5808_RSSI1_CHAN,VBAT_ADC_CHAN,KEY_ADC_CHAN};
-
-
-#define RX5808_SCLK       18
-#define RX5808_MOSI       23
-#define RX5808_CS         5
 // 彻底关断接收机
 bool RX5808_Shutdown = false;
-uint16_t adc_convert_temp0[32][3];
-uint16_t adc_convert_temp1[32][3];
+//uint16_t adc_convert_temp0[32][3];
+//uint16_t adc_convert_temp1[32][3];
 uint16_t adc_converted_value[3]={1024,1024,1024};
 
 volatile int8_t channel_count = 0;
@@ -54,8 +40,9 @@ volatile uint16_t Rx5808_RSSI_Ad_Min0=0;
 volatile uint16_t Rx5808_RSSI_Ad_Max0=4095;
 volatile uint16_t Rx5808_RSSI_Ad_Min1=0;
 volatile uint16_t Rx5808_RSSI_Ad_Max1=4095;
-uint16_t Rx5808_Language=1;
-uint16_t Rx5808_Signal_Source=0;
+volatile uint16_t Rx5808_OSD_Format=0;
+volatile uint16_t Rx5808_Language=1;
+volatile uint16_t Rx5808_Signal_Source=0;
 
 const char Rx5808_ChxMap[6] = {'A', 'B', 'E', 'F', 'R', 'L'};
 const uint16_t Rx5808_Freq[6][8]=
@@ -152,13 +139,21 @@ void RX5808_Init()
 
 	RX5808_RSSI_ADC_Init();	
 
-    xTaskCreate((TaskFunction_t)DMA2_Stream0_IRQHandler, // 任务函数
-			"rx5808_task",//任务名称，没什么用
-			1024,//任务堆栈大小
-			NULL,//传递给 任务函数的参数
-			5,//任务优先级
-			NULL//任务句柄
-			);
+    // xTaskCreate((TaskFunction_t)DMA2_Stream0_IRQHandler, // 任务函数
+	// 		"rx5808_task",//任务名称，没什么用
+	// 		1024,//任务堆栈大小
+	// 		NULL,//传递给任务函数的参数
+	// 		5,//任务优先级
+	// 		NULL//任务句柄
+	// 		);
+
+	xTaskCreatePinnedToCore( (TaskFunction_t)DMA2_Stream0_IRQHandler,
+	                          "rx5808_task", 
+							  1024, 
+							  NULL,
+							   5,
+							    NULL, 
+								0 );
 }
 
 void RX5808_Pause() {
@@ -236,6 +231,11 @@ void RX5808_Set_RSSI_Ad_Max1(uint16_t value)
     Rx5808_RSSI_Ad_Max1=value;
 }
 
+void RX5808_Set_OSD_Format(uint16_t value)
+{
+    Rx5808_OSD_Format = value;
+}
+
 void RX5808_Set_Language(uint16_t value)
 {
     Rx5808_Language = value;
@@ -246,7 +246,7 @@ void RX5808_Set_Signal_Source(uint16_t value)
     Rx5808_Signal_Source = value;
 }
 
-uint8_t Rx5808_Get_Channel()
+uint16_t Rx5808_Get_Channel()
 {
 	return Rx5808_channel;
 }
@@ -269,6 +269,12 @@ uint16_t RX5808_Get_RSSI_Ad_Max1()
     return Rx5808_RSSI_Ad_Max1;
 }
 
+uint16_t RX5808_Get_OSD_Format()
+{
+    return Rx5808_OSD_Format;
+}
+
+
 uint16_t RX5808_Get_Language()
 {
     return Rx5808_Language;
@@ -278,12 +284,25 @@ uint16_t RX5808_Get_Signal_Source()
     return Rx5808_Signal_Source;
 }
 
+bool RX5808_Calib_RSSI(uint16_t min0,uint16_t max0,uint16_t min1,uint16_t max1)
+{
+    //if((min0>=max0)||(min1>=max1))
+	//return false;
+
+	if((min0+RX5808_CALIB_RSSI_ADC_VALUE_THRESHOULD<=max0)&&(min1+RX5808_CALIB_RSSI_ADC_VALUE_THRESHOULD<=max1))
+	return true;
+
+	return false; 
+}
+
 float Rx5808_Calculate_RSSI_Precentage(uint16_t value, uint16_t min, uint16_t max)
 {
+  if(max<=min)
+  return 0;
   float precent=((float)((value - min)*100)) / (float)(max - min);	  
-	if(precent>99.0f)
+	if(precent>=99.0f)
 		precent=99.0f;
-	if(precent<0)
+	if(precent<=0)
 		precent=0;
    return precent;   
 }
@@ -298,7 +317,6 @@ float Rx5808_Get_Precentage1()
     return Rx5808_Calculate_RSSI_Precentage(adc_converted_value[1], Rx5808_RSSI_Ad_Min1,Rx5808_RSSI_Ad_Max1);
 }
 
-
 float Get_Battery_Voltage()
 {
 	//return (float)adc_converted_value[2]/4095*53.3375;
@@ -309,7 +327,7 @@ float Get_Battery_Voltage()
 
 void DMA2_Stream0_IRQHandler(void)     
 {
-	static uint16_t count=0;
+	//static uint16_t count=0;
 	static uint8_t rx5808_cur_receiver_best=rx5808_receiver_count;
 	static uint8_t rx5808_pre_receiver_best=rx5808_receiver_count;
 
@@ -377,7 +395,7 @@ void DMA2_Stream0_IRQHandler(void)
 		}
 
 		}
-		(count==100)?(count=0):(++count);
+	//	(count==100)?(count=0):(++count);
 	vTaskDelay(10 / portTICK_PERIOD_MS);
 	}
 		

@@ -5,6 +5,9 @@
 #include "driver/mcpwm.h"
 #include "soc/mcpwm_reg.h"
 #include "soc/mcpwm_struct.h"
+#include "../../lvgl.h"
+#include "hwvers.h"
+
 
 #define st7735_lcd_backlight_min 10
 #define st7735_lcd_backlight_max 100
@@ -25,8 +28,6 @@ inline void LCD_Writ_Bus(uint8_t dat)
     assert(ret==ESP_OK);            //Should have had no issues.
 
 }
-
-
 
 void LCD_WR_DATA8(uint8_t da) 
 { 
@@ -94,27 +95,24 @@ if(USE_HORIZONTAL==0)
 }
 
 
-//#define GPIO_PWM0A_OUT 23   //Set GPIO 19 as PWM0A
-#define GPIO_PWM0B_OUT 26   //Set GPIO 18 as PWM0B
 
 void pwm_init()
 {
 	mcpwm_pin_config_t pin_config = {
 		.mcpwm0a_out_num = -1,
-		.mcpwm0b_out_num = GPIO_PWM0B_OUT
+		.mcpwm0b_out_num = PIN_NUM_BCKL
 	};
 	mcpwm_set_pin(MCPWM_UNIT_0, &pin_config);
 	mcpwm_config_t pwm_config;
 	pwm_config.frequency = 10000;    //frequency = 1000Hz
 	pwm_config.cmpr_a = 0.0;       //duty cycle of PWMxA = 60.0%
-	pwm_config.cmpr_b = 0;       //duty cycle of PWMxb = 50.0%
+	pwm_config.cmpr_b = 0.0;       //duty cycle of PWMxb = 50.0%
 	pwm_config.counter_mode = MCPWM_UP_COUNTER;
 	pwm_config.duty_mode = MCPWM_DUTY_MODE_0;
 	mcpwm_init(MCPWM_UNIT_0, MCPWM_TIMER_0, &pwm_config);   //Configure PWM0A & PWM0B with above settings
 
   //mcpwm_set_duty(MCPWM_UNIT_0, MCPWM_TIMER_0, 0, 100);
-  mcpwm_set_duty(MCPWM_UNIT_0, MCPWM_TIMER_0, 1, 0);
-
+  mcpwm_set_duty(MCPWM_UNIT_0, MCPWM_TIMER_0, 1, 0.0);
 }
    
 
@@ -133,13 +131,13 @@ void LCD_Init(void)
 	//gpio_set_direction(SPI_NUM_CS, GPIO_MODE_OUTPUT);
     //Reset the display
     gpio_set_level(PIN_NUM_RST, 0);
-    vTaskDelay(100 / portTICK_RATE_MS);
+    vTaskDelay(10 / portTICK_RATE_MS);
     gpio_set_level(PIN_NUM_RST, 1);
-    vTaskDelay(100 / portTICK_RATE_MS);
+    vTaskDelay(10 / portTICK_RATE_MS);
 
 
     LCD_WR_REG(0x11);     //Sleep out
-	vTaskDelay(120 / portTICK_RATE_MS);           //Delay 120ms
+	vTaskDelay(10 / portTICK_RATE_MS);           //Delay 120ms
 	LCD_WR_REG(0xB1);     //Normal mode
 	LCD_WR_DATA8(0x05);   
 	LCD_WR_DATA8(0x3C);   
@@ -233,24 +231,42 @@ void LCD_Init(void)
 	LCD_WR_DATA8(0xA0);    //160
 	LCD_WR_REG(0x2C); 
 	
-    LCD_Fill(0,0,160,80,BLACK);
-	vTaskDelay(50 / portTICK_RATE_MS); 
+    //LCD_Fill(0,0,160,80,BLACK);
+	LCD_Clear();
+	vTaskDelay(10 / portTICK_RATE_MS); 
 	//gpio_set_level(PIN_NUM_BCKL, 1);
 	mcpwm_set_duty(MCPWM_UNIT_0, MCPWM_TIMER_0, 1, st7735_lcd_backlight);
 
 } 
 
+
 void LCD_Fill(uint16_t xsta,uint16_t ysta,uint16_t xend,uint16_t yend,uint16_t color)
 {          
 	uint16_t i,j; 
-	Address_Set(xsta,ysta,xend-1,yend-1);//设置显示范围
+	Address_Set(xsta,ysta,xend-1,yend-1);//设置显示范围	
 	for(i=ysta;i<yend;i++)
 	{													   	 	
 		for(j=xsta;j<xend;j++)
 		{
 			LCD_WR_DATA(color);
 		}
-	} 					  	    
+	} 				  	    
+}
+
+extern lv_color_t lv_disp_buf1[];
+void LCD_Clear()
+{          
+	
+	Address_Set(0,0,159,79);//设置显示范围
+
+	esp_err_t ret;
+    spi_transaction_t t;
+    memset(&t, 0, sizeof(t));       //Zero out the transaction
+    t.length=2*8*160*80;                     //Command is 8 bits
+    t.tx_buffer=lv_disp_buf1;               //The data is the cmd itself
+    //t.user=(void*)1;                //D/C needs to be set to 0
+    ret=spi_device_polling_transmit(my_spi, &t);  //Transmit!
+    assert(ret==ESP_OK);            //Should have had no issues.					  	    
 }
 
 
@@ -264,7 +280,7 @@ void LCD_SET_BLK(int8_t light)
 
 }
 
-uint8_t LCD_GET_BLK(void)
+uint16_t LCD_GET_BLK(void)
 {
 	return st7735_lcd_backlight;
 }

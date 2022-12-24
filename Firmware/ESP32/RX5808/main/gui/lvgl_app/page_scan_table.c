@@ -125,7 +125,7 @@ static void page_scan_table_timer_event(lv_timer_t* tmr)
             lv_label_set_text_fmt(fre_info_label, "%c%d:%d", Rx5808_ChxMap[max_channel / 8], (max_channel % 8) + 1, Rx5808_Freq[max_channel / 8][max_channel % 8]);
             RX5808_Set_Freq(Rx5808_Freq[max_channel / 8][max_channel % 8]);
             Rx5808_Set_Channel(max_channel);
-            rx5808_div_setup_upload();
+            rx5808_div_setup_upload(rx5808_div_config_channel);
         }
         if (time_repeat_count < 47)
             RX5808_Set_Freq(Rx5808_Freq[(time_repeat_count + 1) / 8][(time_repeat_count + 1) % 8]);
@@ -139,8 +139,9 @@ static void scroll_event(lv_event_t* event)
     lv_event_code_t code = lv_event_get_code(event);
     if (code == LV_EVENT_KEY)
     {
-        beep_on_off(1);
-        lv_fun_param_delayed(beep_on_off, 100, 0);
+        //beep_on_off(1);
+        //lv_fun_param_delayed(beep_on_off, 100, 0);
+        beep_turn_on();
         lv_key_t key_status = lv_indev_get_key(lv_indev_get_act());
         if (key_status == LV_KEY_LEFT) {
             page_scan_table_exit();
