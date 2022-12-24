@@ -155,7 +155,7 @@ static void IRAM_ATTR disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * are
         lv_color_t *color_p_dac = color_p;
         for(int y = area->y1; y <= area->y2; ++y) {
             for(int x = area->x1; x <= area->x2; ++x) {
-                esp32_video_set_color(x, y, 
+                esp32_video_set_color(x+50, y+80, 
                     lv_color_to8(*color_p_dac));
                 ++color_p_dac;
             }
