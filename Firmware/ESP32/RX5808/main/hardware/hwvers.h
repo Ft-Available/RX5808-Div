@@ -7,7 +7,7 @@
 #define RX5808_VERSION_PATCH  0
 
 //#define ST7735S
-#define D0WDQ6_VER
+//#define D0WDQ6_VER
 #define SPI_LOW_SPEED
 
 
