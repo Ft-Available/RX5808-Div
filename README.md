@@ -3,7 +3,8 @@
 
 演示视频见：https://www.bilibili.com/video/BV1yr4y1371b
 
-![](D:\RX5808-Div\RX5808-Div\Img\ui.jpeg)
+![ui](https://user-images.githubusercontent.com/66466560/218503938-571cd1fa-2c89-4279-a6aa-281c7fcf8234.jpeg)
+
 
 1)主界面长按确定键，可锁定/解锁手动频道,短按进入菜单；  解锁情况下，按上下左右可调整频率。
 
@@ -31,7 +32,8 @@ OSD功能由林面包（B站ID）添加，非叠加模式，主界面下解锁�
 
 演示视频见：[https://www.bilibili.com/video/BV1ya411g78U ](https://www.bilibili.com/video/BV1ya411g78U) 与接收机UI完全同步。
 
-<img src="D:\RX5808-Div\RX5808-Div\Img\osd.jpeg" style="zoom: 33%;" />
+![osd](https://user-images.githubusercontent.com/66466560/218504602-102e7fe0-b935-48ca-be9e-f459200034c8.jpg)
+
 
 ## 3.硬件设计
 
